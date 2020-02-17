@@ -1,6 +1,6 @@
 {
   "name": "polyrhythm",
-  "version": "0.9.3",
+  "version": "0.9.9",
   "license": "MIT",
   "author": "Dean Radcliffe",
   "main": "dist/index.js",
@@ -15,9 +15,20 @@
     "test": "tsdx test",
     "lint": "tsdx lint"
   },
+  "dependencies": {
+    "rx-helper": ">=2.1.5"
+  },
   "peerDependencies": {
+    "react": "^16.12.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.21",
+    "@types/react": "^16.9.19",
+    "husky": "^3.0.9",
     "react": "^16.12.0",
-    "rx-helper": ">=2.1.0"
+    "tsdx": "^0.11.0",
+    "tslib": "^1.10.0",
+    "typescript": "^3.6.4"
   },
   "husky": {
     "hooks": {
@@ -29,15 +40,5 @@
     "semi": true,
     "singleQuote": true,
     "trailingComma": "es5"
-  },
-  "devDependencies": {
-    "@types/jest": "^24.0.21",
-    "@types/react": "^16.9.19",
-    "husky": "^3.0.9",
-    "react": "^16.12.0",
-    "rx-helper": "^2.1.5",
-    "tsdx": "^0.11.0",
-    "tslib": "^1.10.0",
-    "typescript": "^3.6.4"
   }
 }
