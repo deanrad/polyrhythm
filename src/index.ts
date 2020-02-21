@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   agent as defaultAgent,
   EventMatcher,
@@ -27,6 +27,22 @@ export const useListener = (
     const subscription = agent.on(eventSpec, handler, config);
 
     return () => subscription.unsubscribe();
+  }, deps);
+};
+
+export const useEffectAtMount = (fn: React.EffectCallback) => useEffect(fn, []);
+
+export const useEffectAfterMount = (
+  func: React.EffectCallback,
+  deps: React.DependencyList = []
+) => {
+  const didMount = useRef(false);
+  useEffect(() => {
+    if (didMount.current !== false) {
+      func();
+    } else {
+      didMount.current = true;
+    }
   }, deps);
 };
 
