@@ -46,4 +46,5 @@ export const useEffectAfterMount = (
   }, deps);
 };
 
+export const channel = defaultAgent;
 export * from 'rx-helper';
