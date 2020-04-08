@@ -1,6 +1,8 @@
-import { Subject, Observable, Subscription } from 'rxjs';
+import { Subject, Observable, Subscription, of, from } from 'rxjs';
 import { filter as _filter, takeUntil } from 'rxjs/operators';
+import { mergeMap, concatMap, exhaustMap, switchMap } from 'rxjs/operators';
 export { Subscription } from 'rxjs';
+import { toggleMap } from './toggleMap';
 
 export interface Event {
   type: string;
@@ -38,17 +40,54 @@ export interface Listener {
   (item: Event): any;
 }
 
+/**
+ * When a handler (async usually) returns an Observable, it's possible
+ * that another handler for that type is running already (see demo 'speak-up').
+ * The options are:
+ * - parallel: Concurrent handlers are unlimited, unadjusted
+ * - serial: Concurrency of 1, handlers are queued
+ * - cutoff: Concurrency of 1, any existing handler is killed
+ * - mute: Concurrency of 1, existing handler prevents new handlers
+ * - toggle: Concurrency of 1, kill existing, otherwise start anew
+ *
+ * ![concurrency modes](https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png)
+ */
+export enum ConcurrencyMode {
+  /**
+   * Handlers are invoked asap - no limits */
+  parallel = 'parallel',
+  /**
+   * Concurrency of 1, handlers are enqueued */
+  serial = 'serial',
+  /**
+   * Concurrency of 1, any existing handler is killed while a new is started */
+  replace = 'replace',
+  /**
+   * Concurrency of 1, existing handler prevents new handlers */
+  ignore = 'ignore',
+  /**
+   * Concurrency of 1, existing handler is canceled, and prevents new handlers */
+  toggle = 'toggle',
+}
+
+export interface ListenerConfig {
+  /** The concurrency mode to use. Governs what happens when another handling from this handler is already in progress. */
+  mode?: ConcurrencyMode;
+}
+
 export class Channel {
   private channel: Subject<Event>;
   private filters: Map<Predicate, Filter>;
   private listeners: Map<Predicate, Listener>;
   private listenerEnders: Map<Predicate, Subject<any>>;
+  private listenerParts: Map<Predicate, Subject<any>>;
 
   constructor() {
     this.channel = new Subject<Event>();
     this.filters = new Map<Predicate, Filter>();
     this.listeners = new Map<Predicate, Listener>();
     this.listenerEnders = new Map<Predicate, Subject<any>>();
+    this.listenerParts = new Map<Predicate, Subject<any>>();
   }
 
   public trigger(type: string, payload?: any): Event {
@@ -84,10 +123,16 @@ export class Channel {
     });
   }
 
-  public listen(eventMatcher: EventMatcher, listener: Listener) {
+  public listen(
+    eventMatcher: EventMatcher,
+    listener: Listener,
+    config: ListenerConfig = {}
+  ) {
     const predicate = getEventPredicate(eventMatcher);
     const ender = new Subject();
+    const parts = new Subject();
     this.listenerEnders.set(predicate, ender);
+    this.listenerParts.set(predicate, parts);
 
     const canceler = new Subscription(() => {
       this.deactivateListener(predicate);
@@ -96,14 +141,20 @@ export class Channel {
     const safeListen = (event: Event) => {
       try {
         const retVal = listener(event);
-        if (retVal.subscribe) {
-          const selfEnding = retVal.pipe(takeUntil(ender));
-          selfEnding.subscribe();
-        }
+        parts.next(retVal);
       } catch (e) {
         canceler.unsubscribe();
       }
     };
+    const op: any = operatorForMode(config.mode || ConcurrencyMode.parallel);
+    const sub = parts
+      .pipe(
+        op(retVal => toObservable(retVal)),
+        takeUntil(ender)
+      )
+      .subscribe();
+    canceler.add(() => sub.unsubscribe());
+
     this.listeners.set(predicate, safeListen);
     return canceler;
   }
@@ -121,6 +172,7 @@ export class Channel {
     // cancel any in-flight
     const ender = this.listenerEnders.get(predicate);
     ender && ender.next();
+    this.listenerEnders.delete(predicate);
   }
 }
 
@@ -147,4 +199,38 @@ function getEventPredicate(eventMatcher: EventMatcher) {
     predicate = (event: Event) => eventMatcher === event.type;
   }
   return predicate;
+}
+
+/** Controls what types can be returned from an `on` handler:
+    Primitive types: `of()`
+    Promises: `from()`
+    Observables: pass-through
+*/
+function toObservable(_results: any) {
+  if (typeof _results === 'undefined') return of(undefined);
+
+  // An Observable is preferred
+  if (_results.subscribe) return _results;
+
+  // A Promise is acceptable
+  if (_results.then) return from(_results);
+
+  // otherwiser we convert it to a single-item Observable
+  return of(_results);
+}
+
+function operatorForMode(mode: ConcurrencyMode) {
+  switch (mode) {
+    case ConcurrencyMode.ignore:
+      return exhaustMap;
+    case ConcurrencyMode.parallel:
+      return mergeMap;
+    case ConcurrencyMode.serial:
+      return concatMap;
+    case ConcurrencyMode.toggle:
+      return toggleMap;
+    case ConcurrencyMode.replace:
+    default:
+      return switchMap;
+  }
 }

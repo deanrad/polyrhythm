@@ -16,6 +16,7 @@ import {
   reset,
   Event,
   EventMatcher,
+  ConcurrencyMode,
   Filter,
 } from '../src/channel';
 import { randomId, after } from '../src/utils';
@@ -49,7 +50,7 @@ describe('Sequences of Methods', () => {
     reset();
     callCount = 0;
   });
-  afterEach(function () {
+  afterEach(function() {
     this.unsubscribe && this.unsubscribe();
   });
 
@@ -98,7 +99,7 @@ describe('Sequences of Methods', () => {
   });
 
   describe('#query, #trigger', () => {
-    it('finds events triggered after the query', function () {
+    it('finds events triggered after the query', function() {
       const eventMatcher = true;
 
       const seen = eventsMatching(eventMatcher, this);
@@ -206,7 +207,7 @@ describe('Sequences of Methods', () => {
       expect(result).not.to.have.property('mutantProp');
     });
 
-    it('can be used to trigger new events asynchronously from Promises', async function () {
+    it('can be used to trigger new events asynchronously from Promises', async function() {
       const seen = eventsMatching(true, this);
       listen('cause', () =>
         delay(1, () => {
@@ -219,7 +220,7 @@ describe('Sequences of Methods', () => {
       expect(seen.value).to.eql([{ type: 'cause' }, { type: 'effect' }]);
     });
 
-    it('can be used to trigger new events asynchronously from Observables', async function () {
+    it('can be used to trigger new events asynchronously from Observables', async function() {
       const seen = eventsMatching(true, this);
       listen('cause', () =>
         after(1, () => {
@@ -236,7 +237,7 @@ describe('Sequences of Methods', () => {
   });
 
   describe('#listen, #listen, #trigger', () => {
-    it('runs listeners concurrently', async function () {
+    it('runs listeners concurrently', async function() {
       const seen = eventsMatching(true, this);
       listen('tick/start', threeTicksTriggered(1, 3));
       listen('tick/start', threeTicksTriggered(-3, 3));
@@ -258,16 +259,129 @@ describe('Sequences of Methods', () => {
 
   describe('#listen, #trigger, #trigger', () => {
     describe('Concurrency Modes', () => {
-      it('ignore (mute/exhaustMap)');
-      it('toggle (toggle/toggleMap)');
-      it('replace (cutoff/switchMap');
-      it('start (parallel/mergeMap)');
-      it('enqueue (serial/concatMap)');
+      it('ignore (mute/exhaustMap)', async function() {
+        const seen = eventsMatching(true, this);
+        listen(
+          'tick/start',
+          ({ payload = 1 }) => threeTicksTriggered(payload, 3)(),
+          {
+            mode: ignore,
+          }
+        );
+
+        // 2 within a short time
+        trigger('tick/start', 1);
+        trigger('tick/start', 7); // ignored
+        await delay(10);
+        expect(seen.value).to.eql([
+          { type: 'tick/start', payload: 1 },
+          { type: 'tick/start', payload: 7 },
+          { type: 'tick', payload: 1 },
+          { type: 'tick', payload: 2 },
+          { type: 'tick', payload: 3 },
+        ]);
+      });
+
+      it('toggle (toggle/toggleMap)', async function() {
+        const seen = eventsMatching(true, this);
+        listen(
+          'tick/start',
+          ({ payload }) => threeTicksTriggered(payload, 3)(),
+          { mode: toggle }
+        );
+
+        // 2 within a short time
+        trigger('tick/start', 1);
+        delay(0).then(() => {
+          trigger('tick/start', 7);
+        });
+
+        await delay(0);
+        expect(seen.value).to.eql([
+          { type: 'tick/start', payload: 1 },
+          { type: 'tick', payload: 1 },
+          { type: 'tick/start', payload: 7 },
+        ]);
+      });
+
+      it('replace (cutoff/switchMap', async function() {
+        const seen = eventsMatching(true, this);
+        listen(
+          'tick/start',
+          ({ payload }) => threeTicksTriggered(payload, 3)(),
+          { mode: replace }
+        );
+
+        // 2 within a short time
+        const sub = query('tick').subscribe(() => {
+          trigger('tick/start', 7);
+          sub.unsubscribe();
+        });
+        trigger('tick/start', 1);
+
+        await delay(20);
+        expect(seen.value).to.eql([
+          { type: 'tick/start', payload: 1 },
+          { type: 'tick', payload: 1 },
+          { type: 'tick/start', payload: 7 },
+          { type: 'tick', payload: 7 },
+          { type: 'tick', payload: 8 },
+          { type: 'tick', payload: 9 },
+        ]);
+      });
+
+      it('start (parallel/mergeMap)', async function() {
+        const seen = eventsMatching(true, this);
+        listen(
+          'tick/start',
+          ({ payload }) => threeTicksTriggered(payload, 3)(),
+          { mode: parallel }
+        );
+
+        // 2 within a short time
+        trigger('tick/start', 1);
+        trigger('tick/start', 7);
+        await delay(20);
+        expect(seen.value).to.eql([
+          { type: 'tick/start', payload: 1 },
+          { type: 'tick/start', payload: 7 },
+          { type: 'tick', payload: 1 },
+          { type: 'tick', payload: 7 },
+          { type: 'tick', payload: 2 },
+          { type: 'tick', payload: 8 },
+          { type: 'tick', payload: 3 },
+          { type: 'tick', payload: 9 },
+        ]);
+      });
+
+      it('enqueue (serial/concatMap)', async function() {
+        const seen = eventsMatching(true, this);
+        listen(
+          'tick/start',
+          ({ payload }) => threeTicksTriggered(payload, 3)(),
+          { mode: serial }
+        );
+
+        // 2 within a short time
+        trigger('tick/start', 1);
+        trigger('tick/start', 7);
+        await delay(20);
+        expect(seen.value).to.eql([
+          { type: 'tick/start', payload: 1 },
+          { type: 'tick/start', payload: 7 },
+          { type: 'tick', payload: 1 },
+          { type: 'tick', payload: 2 },
+          { type: 'tick', payload: 3 },
+          { type: 'tick', payload: 7 },
+          { type: 'tick', payload: 8 },
+          { type: 'tick', payload: 9 },
+        ]);
+      });
     });
   });
 
   describe('#listen, #trigger, #listen.unsubscribe', () => {
-    it('cancels in-flight listeners', async function () {
+    it('cancels in-flight listeners', async function() {
       const seen = eventsMatching(true, this);
       const sub = listen('cause', () =>
         after(1, () => {
@@ -284,6 +398,11 @@ describe('Sequences of Methods', () => {
 });
 
 const event = { type: 'anytype', payload: randomId() };
+const ignore = ConcurrencyMode.ignore;
+const toggle = ConcurrencyMode.toggle;
+const replace = ConcurrencyMode.replace;
+const parallel = ConcurrencyMode.parallel;
+const serial = ConcurrencyMode.serial;
 
 const takesException: Filter = () => {
   throw new Error(`Error: ${randomId()}`);
@@ -299,13 +418,13 @@ const triggerEvent = () => {
 };
 
 const delay = (ms: number, fn?: any) =>
-  new Promise((resolve) => {
+  new Promise(resolve => {
     setTimeout(() => resolve(fn && fn()), ms);
   });
 
 const threeTicksTriggered = (from: number, count: number) => () => {
   return range(from, count, asyncScheduler).pipe(
-    tap((n) => {
+    tap(n => {
       trigger('tick', n);
     })
   );
