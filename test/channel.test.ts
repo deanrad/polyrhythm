@@ -1,7 +1,13 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { Observable, Subscription, BehaviorSubject } from 'rxjs';
-import { scan } from 'rxjs/operators';
+import {
+  Observable,
+  Subscription,
+  BehaviorSubject,
+  range,
+  asyncScheduler,
+} from 'rxjs';
+import { scan, tap } from 'rxjs/operators';
 import {
   trigger,
   query,
@@ -226,7 +232,38 @@ describe('Sequences of Methods', () => {
       expect(seen.value).to.eql([{ type: 'cause' }, { type: 'effect' }]);
     });
   });
-  
+
+  describe('#listen, #listen, #trigger', () => {
+    it('runs listeners concurrently', async function () {
+      const seen = eventsMatching(true, this);
+      listen('tick/start', threeTicksTriggered(1, 3));
+      listen('tick/start', threeTicksTriggered(-3, 3));
+
+      trigger('tick/start');
+      await delay(10);
+      expect(seen.value).to.eql([
+        { type: 'tick/start' },
+        { type: 'tick', payload: 1 },
+        { type: 'tick', payload: -3 },
+        { type: 'tick', payload: 2 },
+        { type: 'tick', payload: -2 },
+        { type: 'tick', payload: 3 },
+        { type: 'tick', payload: -1 },
+      ]);
+    });
+    it('errors in one listener dont affect the others');
+  });
+
+  describe('#listen, #trigger, #trigger', () => {
+    describe('Concurrency Modes', () => {
+      it('ignore (mute/exhaustMap)');
+      it('toggle (toggle/toggleMap)');
+      it('replace (cutoff/switchMap');
+      it('start (parallel/mergeMap)');
+      it('enqueue (serial/concatMap)');
+    });
+  });
+
   describe('#listen, #trigger, #listen.unsubscribe', () => {
     it('cancels in-flight listeners', async function () {
       const seen = eventsMatching(true, this);
@@ -246,7 +283,7 @@ describe('Sequences of Methods', () => {
 
 const event = { type: 'anytype', payload: randomId() };
 
-const takesException: Filter = (e: Event) => {
+const takesException: Filter = () => {
   throw new Error(`Error: ${randomId()}`);
 };
 
@@ -263,3 +300,11 @@ const delay = (ms: number, fn?: any) =>
   new Promise((resolve) => {
     setTimeout(() => resolve(fn && fn()), ms);
   });
+
+const threeTicksTriggered = (from: number, count: number) => () => {
+  return range(from, count, asyncScheduler).pipe(
+    tap((n) => {
+      trigger('tick', n);
+    })
+  );
+};

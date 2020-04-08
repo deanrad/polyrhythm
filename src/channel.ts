@@ -42,13 +42,13 @@ export class Channel {
   private channel: Subject<Event>;
   private filters: Map<Predicate, Filter>;
   private listeners: Map<Predicate, Listener>;
-  private listenerEnders: Map<Predicate, Subject>;
+  private listenerEnders: Map<Predicate, Subject<any>>;
 
   constructor() {
     this.channel = new Subject<Event>();
     this.filters = new Map<Predicate, Filter>();
     this.listeners = new Map<Predicate, Listener>();
-    this.listenerEnders = new Map<Predicate, Subject>();
+    this.listenerEnders = new Map<Predicate, Subject<any>>();
   }
 
   public trigger(type: string, payload?: any): Event {
@@ -119,7 +119,8 @@ export class Channel {
     // unregister from future effects
     this.listeners.delete(predicate);
     // cancel any in-flight
-    this.listenerEnders.get(predicate).next();
+    const ender = this.listenerEnders.get(predicate);
+    ender && ender.next();
   }
 }
 
