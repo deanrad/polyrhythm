@@ -1,5 +1,6 @@
 {
   "include": ["src", "types", "test"],
+  "exclude": ["src/toggleMap.ts"],
   "compilerOptions": {
     "target": "es5",
     "module": "esnext",

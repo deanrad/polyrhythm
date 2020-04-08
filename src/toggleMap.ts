@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Observable, Subscription } from "rxjs";
+import { Observable, Subscription } from 'rxjs';
 
 interface Spawner {
   (event: Event): Observable<any>;
@@ -8,11 +8,12 @@ interface Spawner {
 // The missing *Map operator. Acts like a pushbutton toggle
 // wrt to a returned Observable - one will be canceled if its running,
 // one will only be started if it wasn't running!
+//prettier-ignore
 export const toggleMap = (
   spawner: Spawner,
-  mapper = (outer, inner) => inner
+  mapper = (_:any, inner:any) => inner
 ) => {
-  return function(source) {
+  return function(source: Observable<any>) {
     return new Observable(observer => {
       let innerSub: Subscription;
       return source.subscribe({

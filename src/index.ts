@@ -1,11 +1,15 @@
 import React, { useEffect, useRef, useContext, createContext } from 'react';
 import {
-  agent as defaultChannel,
+  channel as defaultChannel,
   EventMatcher,
-  Subscriber,
-  HandlerConfig,
-} from 'rx-helper';
+  Filter,
+  Listener,
+  ListenerConfig,
+} from './channel';
 
+interface ListenerConfigWithDeps extends ListenerConfig {
+  deps?: Array<any>;
+}
 // Call this anywhere in the tree to ensure that useListener/on, and trigger
 // are bound to this agent
 
@@ -27,21 +31,17 @@ export const useChannel = (deps = []) => {
     },
     on(
       eventSpec: EventMatcher,
-      handler: Subscriber,
-      options: HandlerConfig = {}
+      handler: Listener,
+      options: ListenerConfig = {}
     ) {
       useEffect(() => {
         const sub = channel.on(eventSpec, handler, options);
         return () => sub.unsubscribe();
       }, deps);
     },
-    filter(
-      eventSpec: EventMatcher,
-      handler: Subscriber,
-      options: HandlerConfig = {}
-    ) {
+    filter(eventSpec: EventMatcher, filter: Filter) {
       useEffect(() => {
-        const sub = channel.filter(eventSpec, handler, options);
+        const sub = channel.filter(eventSpec, filter);
         return () => sub.unsubscribe();
       }, deps);
     },
@@ -59,13 +59,13 @@ export const useChannel = (deps = []) => {
  */
 export const useListener = (
   eventSpec: EventMatcher,
-  handler: Subscriber,
-  options: HandlerConfig = {}
+  handler: Listener,
+  options: ListenerConfigWithDeps = {}
 ) => {
-  const { deps = [], agent = defaultChannel, ...config } = options;
+  const { deps = [], ...config } = options;
 
   useEffect(() => {
-    const subscription = agent.on(eventSpec, handler, config);
+    const subscription = defaultChannel.on(eventSpec, handler, config);
 
     return () => subscription.unsubscribe();
   }, deps);
@@ -76,13 +76,13 @@ export const useListener = (
 */
 export const useFilter = (
   eventSpec: EventMatcher,
-  handler: Subscriber,
-  options: HandlerConfig = {}
+  handler: Listener,
+  options: ListenerConfigWithDeps = {}
 ) => {
-  const { deps = [], agent = defaultChannel, ...config } = options;
+  const { deps = [] } = options;
 
   useEffect(() => {
-    const subscription = agent.filter(eventSpec, handler, config);
+    const subscription = defaultChannel.filter(eventSpec, handler);
 
     return () => subscription.unsubscribe();
   }, deps);
@@ -104,5 +104,4 @@ export const useEffectAfterMount = (
   }, deps);
 };
 
-export const channel = defaultChannel;
-export * from 'rx-helper';
+export * from './channel';
