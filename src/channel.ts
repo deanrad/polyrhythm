@@ -149,7 +149,7 @@ export class Channel {
     const op: any = operatorForMode(config.mode || ConcurrencyMode.parallel);
     const sub = parts
       .pipe(
-        op(retVal => toObservable(retVal)),
+        op((retVal: any) => toObservable(retVal)),
         takeUntil(ender)
       )
       .subscribe();
@@ -157,6 +157,14 @@ export class Channel {
 
     this.listeners.set(predicate, safeListen);
     return canceler;
+  }
+
+  public on(
+    eventMatcher: EventMatcher,
+    listener: Listener,
+    config: ListenerConfig = {}
+  ) {
+    return listen(eventMatcher, listener, config);
   }
 
   public reset() {
@@ -182,6 +190,7 @@ export const trigger = channel.trigger.bind(channel);
 export const query = channel.query.bind(channel);
 export const filter = channel.filter.bind(channel);
 export const listen = channel.listen.bind(channel);
+export const on = channel.on.bind(channel);
 export const reset = channel.reset.bind(channel);
 
 function getEventPredicate(eventMatcher: EventMatcher) {

@@ -13,6 +13,7 @@ import {
   query,
   filter,
   listen,
+  on,
   reset,
   Event,
   EventMatcher,
@@ -76,7 +77,7 @@ describe('Sequences of Methods', () => {
 
       expect(result).to.be.instanceOf(Subscription);
     });
-    it('Should not return a Promise');
+    it('Should not be given a function which returns a Promise');
   });
 
   describe('#listen', () => {
@@ -91,7 +92,11 @@ describe('Sequences of Methods', () => {
   });
 
   describe('#on', () => {
-    it('is an alias for #listen');
+    it('is an alias for #listen', () => {
+      const result = on(true, () => null);
+
+      expect(result).to.be.instanceOf(Subscription);
+    });
   });
 
   describe('#trigger, #query', () => {
