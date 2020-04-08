@@ -14,10 +14,10 @@
     "build": "tsdx build && size-limit",
     "test": "ts-mocha -r esm -p tsconfig.json test/*test*.ts ",
     "test:watch": "yarn test --watch --watch-files 'test/*test*.ts' --watch-files 'src/*.ts'",
+    "test:perf": "ts-mocha -r esm -p tsconfig.json test/perf*.ts ",
     "lint": "tsdx lint"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "peerDependencies": {
     "react": "^16.12.0",
     "rxjs": "^6.3.0"

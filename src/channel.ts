@@ -1,8 +1,8 @@
 import { Subject, Observable, Subscription, of, from } from 'rxjs';
 import { filter as _filter, takeUntil } from 'rxjs/operators';
 import { mergeMap, concatMap, exhaustMap, switchMap } from 'rxjs/operators';
-export { Subscription } from 'rxjs';
 import { toggleMap } from './toggleMap';
+export { Subscription } from 'rxjs';
 
 export interface Event {
   type: string;
