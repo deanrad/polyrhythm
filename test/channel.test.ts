@@ -6,12 +6,13 @@ import {
   trigger,
   query,
   filter,
+  listen,
   reset,
   Event,
   EventMatcher,
   Filter,
 } from '../src/channel';
-import { randomId } from '../src/utils';
+import { randomId, after } from '../src/utils';
 
 function eventsMatching(
   eventMatcher: EventMatcher,
@@ -68,6 +69,22 @@ describe('Sequences of Methods', () => {
 
       expect(result).to.be.instanceOf(Subscription);
     });
+    it('Should not return a Promise');
+  });
+
+  describe('#listen', () => {
+    it('returns a subscription', () => {
+      const result = listen(true, () => null);
+
+      expect(result).to.be.instanceOf(Subscription);
+    });
+    it('May return nothing or a sync value');
+    it('May return an Observable');
+    it('May return a Promise');
+  });
+
+  describe('#on', () => {
+    it('is an alias for #listen');
   });
 
   describe('#trigger, #query', () => {
@@ -90,11 +107,35 @@ describe('Sequences of Methods', () => {
   });
 
   describe('#filter, #trigger', () => {
+    it('runs synchronously', () => {
+      filter(true, () => {
+        callCount++;
+      });
+      trigger('foo');
+      expect(callCount).to.equal(1);
+    });
+
+    it('can modify the event', () => {
+      filter(true, mutator);
+      const result = trigger(event.type, event.payload);
+      expect(result).to.have.property('mutantProp', ':)');
+    });
+
+    it('affects only specified events', () => {
+      let bac = 0;
+      filter('beer', () => {
+        bac += 0.1;
+      });
+      filter('wine', () => {
+        bac += 0.2;
+      });
+      trigger('wine');
+      expect(bac).to.equal(0.2);
+    });
+
     it('can throw for the triggerer', () => {
       filter(true, takesException);
-      expect(() => {
-        trigger(event.type, event.payload);
-      }).to.throw();
+      expect(triggerEvent).to.throw();
     });
 
     it('can throw and resume taking events', () => {
@@ -103,12 +144,6 @@ describe('Sequences of Methods', () => {
       expect(callCount).to.equal(1);
       expect(triggerEvent).to.throw();
       expect(callCount).to.equal(2);
-    });
-
-    it('can modify the event', () => {
-      filter(true, mutator);
-      const result = trigger(event.type, event.payload);
-      expect(result).to.have.property('mutantProp', ':)');
     });
   });
 
@@ -140,6 +175,73 @@ describe('Sequences of Methods', () => {
       expect(result).not.to.have.property('mutantProp', ':)');
     });
   });
+
+  describe('#listen, #trigger', () => {
+    it('affects only specified events');
+    it('computes a return value synchronously');
+
+    it('cant throw for the triggerer', () => {
+      listen(true, thrower);
+      expect(triggerEvent).not.to.throw();
+      expect(callCount).to.equal(1);
+    });
+
+    it('is removed if it throws', () => {
+      listen(true, thrower);
+      expect(triggerEvent).not.to.throw();
+      expect(callCount).to.equal(1);
+      expect(triggerEvent).not.to.throw();
+      expect(callCount).to.equal(1);
+    });
+
+    it('cannot modify the event', () => {
+      listen(true, mutator);
+      const result = triggerEvent();
+      expect(result).not.to.have.property('mutantProp');
+    });
+
+    it('can be used to trigger new events asynchronously from Promises', async function () {
+      const seen = eventsMatching(true, this);
+      listen('cause', () =>
+        delay(1, () => {
+          trigger('effect');
+        })
+      );
+      trigger('cause');
+      expect(seen.value).to.eql([{ type: 'cause' }]);
+      await delay(2);
+      expect(seen.value).to.eql([{ type: 'cause' }, { type: 'effect' }]);
+    });
+
+    it('can be used to trigger new events asynchronously from Observables', async function () {
+      const seen = eventsMatching(true, this);
+      listen('cause', () =>
+        after(1, () => {
+          trigger('effect');
+        })
+      );
+      trigger('cause');
+      expect(seen.value).to.eql([{ type: 'cause' }]);
+      await delay(2);
+      expect(seen.value).to.eql([{ type: 'cause' }, { type: 'effect' }]);
+    });
+  });
+  
+  describe('#listen, #trigger, #listen.unsubscribe', () => {
+    it('cancels in-flight listeners', async function () {
+      const seen = eventsMatching(true, this);
+      const sub = listen('cause', () =>
+        after(1, () => {
+          trigger('effect');
+        })
+      );
+      trigger('cause');
+      expect(seen.value).to.eql([{ type: 'cause' }]);
+      sub.unsubscribe();
+      await delay(2);
+      expect(seen.value).to.eql([{ type: 'cause' }]);
+    });
+  });
 });
 
 const event = { type: 'anytype', payload: randomId() };
@@ -154,5 +256,10 @@ const mutator: Filter = (e: Event) => {
 };
 
 const triggerEvent = () => {
-  trigger(event.type, event.payload);
+  return trigger(event.type, event.payload);
 };
+
+const delay = (ms: number, fn?: any) =>
+  new Promise((resolve) => {
+    setTimeout(() => resolve(fn && fn()), ms);
+  });
