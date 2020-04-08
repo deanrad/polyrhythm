@@ -231,6 +231,8 @@ describe('Sequences of Methods', () => {
       await delay(2);
       expect(seen.value).to.eql([{ type: 'cause' }, { type: 'effect' }]);
     });
+
+    it('LEFTOFF is removed if its Observable emits an error');
   });
 
   describe('#listen, #listen, #trigger', () => {
