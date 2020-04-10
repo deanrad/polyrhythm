@@ -6,6 +6,8 @@ import {
   BehaviorSubject,
   range,
   asyncScheduler,
+  throwError,
+  concat,
 } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import {
@@ -47,6 +49,16 @@ describe('Sequences of Methods', () => {
     takesException(e);
   };
 
+  const throwsError = () => {
+    callCount++;
+    return throwError(new Error('Oops'));
+  };
+
+  const throwsErrorLater = () => {
+    callCount++;
+    return concat(after(1, 1), throwError(new Error('Oops')));
+  };
+
   beforeEach(() => {
     reset();
     callCount = 0;
@@ -68,6 +80,19 @@ describe('Sequences of Methods', () => {
       const result = query(true);
 
       expect(result).to.be.instanceOf(Observable);
+    });
+    describe('inside of a #listen', () => {
+      it('misses its own event, of course', async function() {
+        let counter = 0;
+        listen('count/start', () => {
+          query('count/start').subscribe(() => {
+            counter++;
+          });
+        });
+        trigger('count/start');
+        await delay(10);
+        expect(counter).to.equal(0);
+      });
     });
   });
 
@@ -192,7 +217,7 @@ describe('Sequences of Methods', () => {
     it('affects only specified events');
     it('computes a return value synchronously');
 
-    it('cant throw for the triggerer', () => {
+    it('does not throw for the triggerer', () => {
       listen(true, thrower);
       expect(triggerEvent).not.to.throw();
       expect(callCount).to.equal(1);
@@ -200,6 +225,14 @@ describe('Sequences of Methods', () => {
 
     it('is removed if it throws', () => {
       listen(true, thrower);
+      expect(triggerEvent).not.to.throw();
+      expect(callCount).to.equal(1);
+      expect(triggerEvent).not.to.throw();
+      expect(callCount).to.equal(1);
+    });
+
+    it('is removed if its Observable errors', () => {
+      listen(true, throwsError);
       expect(triggerEvent).not.to.throw();
       expect(callCount).to.equal(1);
       expect(triggerEvent).not.to.throw();

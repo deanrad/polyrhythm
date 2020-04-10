@@ -99,13 +99,14 @@ export class Channel {
     }
 
     Object.freeze(event);
+    this.channel.next(event);
 
     for (const [predicate, listener] of this.listeners.entries()) {
       if (predicate(event)) {
         listener(event);
       }
     }
-    this.channel.next(event);
+
     return event;
   }
 
@@ -152,7 +153,11 @@ export class Channel {
         op((retVal: any) => toObservable(retVal)),
         takeUntil(ender)
       )
-      .subscribe();
+      .subscribe({
+        error(e) {
+          canceler.unsubscribe();
+        },
+      });
     canceler.add(() => sub.unsubscribe());
 
     this.listeners.set(predicate, safeListen);
