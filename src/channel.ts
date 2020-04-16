@@ -1,5 +1,5 @@
 import { Subject, Observable, Subscription, of, from } from 'rxjs';
-import { filter as _filter, takeUntil } from 'rxjs/operators';
+import { filter as _filter, tap, takeUntil } from 'rxjs/operators';
 import { mergeMap, concatMap, exhaustMap, switchMap } from 'rxjs/operators';
 import { toggleMap } from './toggleMap';
 export { Subscription } from 'rxjs';
@@ -70,9 +70,17 @@ export enum ConcurrencyMode {
   toggle = 'toggle',
 }
 
+export interface TriggerConfig {
+  next?: string;
+  complete?: string;
+  error?: string;
+}
+
 export interface ListenerConfig {
   /** The concurrency mode to use. Governs what happens when another handling from this handler is already in progress. */
   mode?: ConcurrencyMode;
+  /** A declarative way to map the Observable returned from the listener onto new triggered events */
+  trigger?: TriggerConfig;
 }
 
 export class Channel {
@@ -130,6 +138,8 @@ export class Channel {
     config: ListenerConfig = {}
   ) {
     const predicate = getEventPredicate(eventMatcher);
+    const userTriggers = getUserTriggers(config.trigger);
+
     const ender = new Subject();
     const parts = new Subject();
     this.listenerEnders.set(predicate, ender);
@@ -147,18 +157,29 @@ export class Channel {
         canceler.unsubscribe();
       }
     };
+
+    const applyUserTriggers = (e: any) => {
+      userTriggers.next && this.trigger(userTriggers.next, e);
+    };
+
     const op: any = operatorForMode(config.mode || ConcurrencyMode.parallel);
-    const sub = parts
-      .pipe(
-        op((retVal: any) => toObservable(retVal)),
-        takeUntil(ender)
-      )
-      .subscribe({
-        error() {
-          canceler.unsubscribe();
-        },
-      });
-    canceler.add(() => sub.unsubscribe());
+    const listenerEvents = parts.pipe(
+      op((retVal: any) => toObservable(retVal)),
+      tap(applyUserTriggers),
+      takeUntil(ender)
+    );
+
+    const listenerObserver = {
+      error: (err: Error) => {
+        canceler.unsubscribe();
+        if (userTriggers.error) {
+          this.trigger(userTriggers.error, err);
+        }
+      },
+    };
+
+    const listenerSub = listenerEvents.subscribe(listenerObserver);
+    canceler.add(() => listenerSub.unsubscribe());
 
     this.listeners.set(predicate, safeListen);
     return canceler;
@@ -213,6 +234,10 @@ function getEventPredicate(eventMatcher: EventMatcher) {
     predicate = (event: Event) => eventMatcher === event.type;
   }
   return predicate;
+}
+
+function getUserTriggers(config: TriggerConfig = {}) {
+  return config;
 }
 
 /** Controls what types can be returned from an `on` handler:

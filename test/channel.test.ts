@@ -109,14 +109,25 @@ describe('Sequences of Methods', () => {
   });
 
   describe('#listen', () => {
+    describe('Arguments', () => {
+      describe('An Event Pattern', () => {
+        it('what events the listener will run upon');
+      });
+      describe('A Listener  - A function to be run on matching events', () => {
+        it('May return nothing or a sync value');
+        it('May return an Observable');
+        it('May return a Promise');
+      });
+      describe('Config - concurrency and re-triggering', () => {
+        it('See #listen / #trigger specs');
+      });
+    });
+
     it('returns a subscription', () => {
       const result = listen(true, () => null);
 
       expect(result).to.be.instanceOf(Subscription);
     });
-    it('May return nothing or a sync value');
-    it('May return an Observable');
-    it('May return a Promise');
   });
 
   describe('#trigger, #query', () => {
@@ -291,6 +302,34 @@ describe('Sequences of Methods', () => {
       await delay(2);
       expect(seen.value).to.eql([{ type: 'cause' }, { type: 'effect' }]);
     });
+
+    it('can trigger events via config', async function() {
+      const seen = eventsMatching(true, this);
+      listen('cause', () => after(1, () => '⚡️'), {
+        trigger: { next: 'effect' },
+      });
+      trigger('cause');
+      expect(seen.value).to.eql([{ type: 'cause' }]);
+      await delay(2);
+      expect(seen.value).to.eql([
+        { type: 'cause' },
+        { type: 'effect', payload: '⚡️' },
+      ]);
+    });
+
+    it('can notify of Observable errors via config', async function() {
+      const seen = eventsMatching(true, this);
+      listen('cause', throwsError, { trigger: { error: 'cause/error' } });
+      trigger('cause');
+      trigger('cause');
+      expect(seen.value[0]).to.eql({ type: 'cause' });
+      expect(seen.value[1]).to.have.property('type', 'cause/error');
+      expect(seen.value[1].payload).to.be.instanceOf(Error);
+      expect(seen.value[2]).to.eql({ type: 'cause' });
+
+      // no more errors since the listener was still unsubscribed
+      expect(seen.value).to.have.length(3);
+    });
   });
 
   describe('#listen, #listen, #trigger', () => {
@@ -306,6 +345,7 @@ describe('Sequences of Methods', () => {
 
       expect(callCount).to.equal(3);
     });
+
     it('runs listeners concurrently', async function() {
       const seen = eventsMatching(true, this);
       listen('tick/start', threeTicksTriggered(1, 3, 'tick'));

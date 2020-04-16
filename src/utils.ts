@@ -34,6 +34,7 @@ export const after = (
 
   // after is a 'thenable, thus usable with await.
   // ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
+  // @ts-ignore
   resultObs.then = function(resolve, reject) {
     return resultObs.toPromise().then(resolve, reject);
   };
