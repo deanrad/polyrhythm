@@ -78,8 +78,8 @@ describe('after', () => {
       await timer(10).toPromise();
       expect(counter).not.to.be.greaterThan(0);
     });
-    it('Can be obtained via subscribe', (done) => {
-      after(10, 1.1).subscribe((n) => {
+    it('Can be obtained via subscribe', done => {
+      after(10, 1.1).subscribe(n => {
         expect(n).to.eql(1.1);
         done();
       });
@@ -93,7 +93,7 @@ describe('after', () => {
     it('Can be canceled', async () => {
       const effects = new Array<number>();
 
-      const twoEvents = [1, 2].map((i) => after(5, () => effects.push(i)));
+      const twoEvents = [1, 2].map(i => after(5, () => effects.push(i)));
 
       const sub = concat(...twoEvents).subscribe();
 

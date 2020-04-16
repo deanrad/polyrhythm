@@ -154,7 +154,7 @@ export class Channel {
         takeUntil(ender)
       )
       .subscribe({
-        error(e) {
+        error() {
           canceler.unsubscribe();
         },
       });

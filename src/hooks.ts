@@ -29,7 +29,7 @@ export const useChannel = (deps = []) => {
     trigger(type: string, payload?: any) {
       channel.trigger(type, payload);
     },
-    on(
+    useListener(
       eventSpec: EventMatcher,
       handler: Listener,
       options: ListenerConfig = {}
@@ -39,7 +39,7 @@ export const useChannel = (deps = []) => {
         return () => sub.unsubscribe();
       }, deps);
     },
-    filter(eventSpec: EventMatcher, filter: Filter) {
+    useFilter(eventSpec: EventMatcher, filter: Filter) {
       useEffect(() => {
         const sub = channel.filter(eventSpec, filter);
         return () => sub.unsubscribe();
