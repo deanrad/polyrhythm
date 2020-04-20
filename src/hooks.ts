@@ -10,6 +10,7 @@ import {
 interface ListenerConfigWithDeps extends ListenerConfig {
   deps?: Array<any>;
 }
+
 // Call this anywhere in the tree to ensure that useListener/on, and trigger
 // are bound to this agent
 

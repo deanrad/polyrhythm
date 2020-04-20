@@ -1,6 +1,6 @@
 {
   "name": "polyrhythm",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "license": "MIT",
   "author": "Dean Radcliffe",
   "main": "dist/index.js",
@@ -15,9 +15,9 @@
     "test": "ts-mocha -r esm -p tsconfig.json test/*test*.ts ",
     "test:watch": "yarn test --watch --watch-files 'test/*test*.ts' --watch-files 'src/*.ts'",
     "test:perf": "ts-mocha -r esm -p tsconfig.json test/perf*.ts ",
-    "lint": "tsdx lint"
+    "lint": "tsdx lint",
+    "doc": "typedoc --theme minimal --out docs/ src/"
   },
-  "dependencies": {},
   "peerDependencies": {
     "react": "^16.12.0",
     "rxjs": "^6.3.0"
@@ -41,7 +41,8 @@
     "ts-mocha": "^7.0.0",
     "tsdx": "^0.11.0",
     "tslib": "^1.10.0",
-    "typescript": "^3.6.4"
+    "typedoc": "^0.17.4",
+    "typescript": "^3.8.3"
   },
   "husky": {
     "hooks": {

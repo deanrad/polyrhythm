@@ -8,6 +8,7 @@ import {
   asyncScheduler,
   throwError,
   concat,
+  of,
 } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import {
@@ -303,7 +304,7 @@ describe('Sequences of Methods', () => {
       expect(seen.value).to.eql([{ type: 'cause' }, { type: 'effect' }]);
     });
 
-    it('can trigger events via config', async function() {
+    it('can trigger `next` events via config', async function() {
       const seen = eventsMatching(true, this);
       listen('cause', () => after(1, () => '⚡️'), {
         trigger: { next: 'effect' },
@@ -317,18 +318,32 @@ describe('Sequences of Methods', () => {
       ]);
     });
 
-    it('can notify of Observable errors via config', async function() {
+    it('can trigger `error` events when it dies via config', async function() {
       const seen = eventsMatching(true, this);
       listen('cause', throwsError, { trigger: { error: 'cause/error' } });
       trigger('cause');
       trigger('cause');
       expect(seen.value[0]).to.eql({ type: 'cause' });
-      expect(seen.value[1]).to.have.property('type', 'cause/error');
+      expect(seen.value[1].type).to.eq('cause/error');
       expect(seen.value[1].payload).to.be.instanceOf(Error);
       expect(seen.value[2]).to.eql({ type: 'cause' });
 
       // no more errors since the listener was still unsubscribed
       expect(seen.value).to.have.length(3);
+    });
+
+    it('can trigger `complete` events via config', async function() {
+      const seen = eventsMatching(true, this);
+      listen('cause', () => of(2.718), {
+        trigger: { next: 'effect', complete: 'cause/complete' },
+      });
+      trigger('cause');
+
+      expect(seen.value).to.eql([
+        { type: 'cause' },
+        { type: 'effect', payload: 2.718 },
+        { type: 'cause/complete' },
+      ]);
     });
   });
 

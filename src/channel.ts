@@ -1,4 +1,4 @@
-import { Subject, Observable, Subscription, of, from } from 'rxjs';
+import { Subject, Observable, Subscription, of, from, concat } from 'rxjs';
 import { filter as _filter, tap, takeUntil } from 'rxjs/operators';
 import { mergeMap, concatMap, exhaustMap, switchMap } from 'rxjs/operators';
 import { toggleMap } from './toggleMap';
@@ -41,32 +41,29 @@ export interface Listener {
 }
 
 /**
- * When a handler (async usually) returns an Observable, it's possible
- * that another handler for that type is running already (see demo 'speak-up').
- * The options are:
- * - parallel: Concurrent handlers are unlimited, unadjusted
- * - serial: Concurrency of 1, handlers are queued
- * - cutoff: Concurrency of 1, any existing handler is killed
- * - mute: Concurrency of 1, existing handler prevents new handlers
- * - toggle: Concurrency of 1, kill existing, otherwise start anew
+ * When a listener is async, returning an Observable, it's possible
+ * that a previous Observable of that listener is running already.
+ * Concurrency modes control how the new and old listener are affected
+ * when when they overlap.
  *
  * ![concurrency modes](https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png)
  */
 export enum ConcurrencyMode {
   /**
-   * Handlers are invoked asap - no limits */
+   * Newly returned Observables are subscribed immediately, without regard to resource constraints, or the ordering of their completion. (ala mergeMap) */
   parallel = 'parallel',
   /**
-   * Concurrency of 1, handlers are enqueued */
+   * Observables are enqueued and always complete in the order they were triggered. (ala concatMap)*/
   serial = 'serial',
   /**
-   * Concurrency of 1, any existing handler is killed while a new is started */
+   * Any existing Observable is canceled, and a new is begun (ala switchMap) */
   replace = 'replace',
   /**
-   * Concurrency of 1, existing handler prevents new handlers */
+   * Any new Observable is not subscribed if another is running. (ala exhaustMap) */
   ignore = 'ignore',
   /**
-   * Concurrency of 1, existing handler is canceled, and prevents new handlers */
+   * Any new Observable is not subscribed if another is running, and
+   * the previous one is canceled. (ala switchMap with empty()) */
   toggle = 'toggle',
 }
 
@@ -158,14 +155,25 @@ export class Channel {
       }
     };
 
-    const applyUserTriggers = (e: any) => {
+    const applyNextTrigger = (e: any) => {
       userTriggers.next && this.trigger(userTriggers.next, e);
     };
+    const applyCompleteTrigger = () => {
+      return new Observable(notify => {
+        userTriggers.complete && this.trigger(userTriggers.complete);
+        notify.complete();
+      });
+    };
 
-    const op: any = operatorForMode(config.mode || ConcurrencyMode.parallel);
+    const applyOverlap: any = operatorForMode(config.mode);
+    const returnedObservable = (retVal: any) => {
+      const userReturned = toObservable(retVal);
+      return concat(userReturned, applyCompleteTrigger());
+    };
+
     const listenerEvents = parts.pipe(
-      op((retVal: any) => toObservable(retVal)),
-      tap(applyUserTriggers),
+      applyOverlap(returnedObservable),
+      tap(applyNextTrigger),
       takeUntil(ender)
     );
 
@@ -258,7 +266,7 @@ function toObservable(_results: any) {
   return of(_results);
 }
 
-function operatorForMode(mode: ConcurrencyMode) {
+function operatorForMode(mode: ConcurrencyMode = ConcurrencyMode.parallel) {
   switch (mode) {
     case ConcurrencyMode.ignore:
       return exhaustMap;

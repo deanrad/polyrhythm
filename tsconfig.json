@@ -27,6 +27,8 @@
     },
     "jsx": "react",
     "esModuleInterop": true,
-    "downlevelIteration": true
+    "allowSyntheticDefaultImports": true,
+    "downlevelIteration": true,
+    "types": ["node"]
   }
 }
