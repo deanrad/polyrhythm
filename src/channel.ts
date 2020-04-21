@@ -146,10 +146,11 @@ export class Channel {
       this.deactivateListener(predicate);
     });
 
-    const safeListen = (event: Event) => {
+    const enqueuePart = (event: Event) => {
       try {
-        const retVal = listener(event);
-        parts.next(retVal);
+        const userReturned = toObservable(listener(event));
+        const part = concat(userReturned, applyCompleteTrigger());
+        parts.next(part);
       } catch (e) {
         canceler.unsubscribe();
       }
@@ -166,13 +167,9 @@ export class Channel {
     };
 
     const applyOverlap: any = operatorForMode(config.mode);
-    const returnedObservable = (retVal: any) => {
-      const userReturned = toObservable(retVal);
-      return concat(userReturned, applyCompleteTrigger());
-    };
 
     const listenerEvents = parts.pipe(
-      applyOverlap(returnedObservable),
+      applyOverlap((part: any) => part),
       tap(applyNextTrigger),
       takeUntil(ender)
     );
@@ -189,7 +186,7 @@ export class Channel {
     const listenerSub = listenerEvents.subscribe(listenerObserver);
     canceler.add(() => listenerSub.unsubscribe());
 
-    this.listeners.set(predicate, safeListen);
+    this.listeners.set(predicate, enqueuePart);
     return canceler;
   }
 
