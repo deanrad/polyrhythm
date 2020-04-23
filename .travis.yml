@@ -1,0 +1,16 @@
+language: node_js
+branches:
+  only:
+    - master
+cache:
+  yarn: true
+  directories:
+    - node_modules
+notifications:
+  email: false
+node_js:
+  - 11
+os:
+  - linux
+script:
+  - npm run test
