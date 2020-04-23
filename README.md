@@ -132,8 +132,8 @@ So you want to know what else can be done? I'm in the process of migrating thing
 
 - [A basic working React integration](https://codesandbox.io/s/polyrhythm-react-integration-jwqwe)
 - [A (streaming) autocomplete over the Google Books API](https://codesandbox.io/s/book-streamer-w1t8o)
+- [`concatMap`, meet the `serial` ConcurrencyMode](https://codesandbox.io/s/polyrhythm-serial-mode-scroller-r94fj)
+- [`after`, the setTimeout you always wanted](/test/utils.test.ts)
 - [An illustrated demo of the ConcurrencyMode concept](https://codesandbox.io/s/polyrhythm-ny-countdown-e5itf)
 - [An elegant solution to when the UI changes out from under you when you're about to click something, and it moves](https://codesandbox.io/s/debounced-ui-d052f)
-- [A speech API demo with "serial" concurrency (TODO)]()
-- [`after`, the setTimeout you always wanted](/test/utils.test.ts)
 - See [All CodeSandbox Demos](https://codesandbox.io/search?refinementList%5Bnpm_dependencies.dependency%5D%5B0%5D=polyrhythm&page=1&configure%5BhitsPerPage%5D=12)
