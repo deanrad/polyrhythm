@@ -14,3 +14,4 @@ os:
   - linux
 script:
   - npm run test
+  - npm run test:perf

@@ -50,6 +50,11 @@ describe('Sequences of Methods', () => {
     takesException(e);
   };
 
+  const ill = () => {
+    callCount++;
+    throw new Error('down wit da sickness');
+  };
+
   const throwsError = () => {
     callCount++;
     return throwError(new Error('Oops'));
@@ -214,10 +219,6 @@ describe('Sequences of Methods', () => {
       expect(result.payload).to.equal('The number is 14');
     });
     it('aborts later filters if earlier ones throw', () => {
-      const ill = () => {
-        callCount++;
-        throw new Error('down wit da sickness');
-      };
       const healthy = () => {
         callCount++;
       };
@@ -226,6 +227,17 @@ describe('Sequences of Methods', () => {
       filter(true, healthy);
       expect(triggerEvent).to.throw();
       expect(callCount).to.equal(1);
+    });
+    it('runs no listeners if an exception thrown', () => {
+      let listenerCallCount = 0;
+      const healthy = () => {
+        listenerCallCount++;
+      };
+
+      filter(true, ill);
+      listen(true, healthy);
+      expect(triggerEvent).to.throw();
+      expect(listenerCallCount).to.equal(0);
     });
   });
 
@@ -383,13 +395,9 @@ describe('Sequences of Methods', () => {
   describe('Concurrency Modes: #listen, #trigger, #trigger', () => {
     it('ignore (mute/exhaustMap)', async function() {
       const seen = eventsMatching(true, this);
-      listen(
-        'tick/start',
-        ({ payload = 1 }) => threeTicksTriggered(payload, 3)(),
-        {
-          mode: ignore,
-        }
-      );
+      listen('tick/start', ({ payload }) => threeTicksTriggered(payload, 3)(), {
+        mode: ignore,
+      });
 
       // 2 within a short time
       trigger('tick/start', 1);
@@ -406,21 +414,35 @@ describe('Sequences of Methods', () => {
 
     it('toggle (toggle/toggleMap)', async function() {
       const seen = eventsMatching(true, this);
-      listen('tick/start', ({ payload }) => threeTicksTriggered(payload, 3)(), {
-        mode: toggle,
-      });
+      listen(
+        'tick/start',
+        ({ payload }) => {
+          trigger('tick', 'sync');
+          return threeTicksTriggered(payload, 3)();
+        },
+        {
+          mode: toggle,
+        }
+      );
 
       // 2 within a short time
       trigger('tick/start', 1);
-      delay(0).then(() => {
-        trigger('tick/start', 7);
-      });
+      trigger('tick/start', 2);
+      trigger('tick/start', 3);
 
-      await delay(0);
+      await delay(10);
       expect(seen.value).to.eql([
         { type: 'tick/start', payload: 1 },
-        { type: 'tick', payload: 1 },
-        { type: 'tick/start', payload: 7 },
+        { type: 'tick', payload: 'sync' },
+        // the async part was toggled off
+        { type: 'tick/start', payload: 2 },
+        { type: 'tick', payload: 'sync' },
+        // a new run went to completion
+        { type: 'tick/start', payload: 3 },
+        { type: 'tick', payload: 'sync' },
+        { type: 'tick', payload: 3 },
+        { type: 'tick', payload: 4 },
+        { type: 'tick', payload: 5 },
       ]);
     });
 

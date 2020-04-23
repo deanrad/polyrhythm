@@ -1,4 +1,6 @@
-[![npm version](https://badge.fury.io/js/polyrhythm.svg)](https://badge.fury.io/js/polyrhythm)[![TypeScript](https://badges.frapsoft.com/typescript/version/typescript-next.svg?v=101)](https://github.com/ellerbrock/typescript-badges/)<a href="#badge"><img alt="code style: prettier" src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square"></a>[![twitter link](https://img.shields.io/badge/twitter-@deaniusol-55acee.svg)](https://twitter.com/deaniusol)
+[![npm version](https://badge.fury.io/js/polyrhythm.svg)](https://badge.fury.io/js/polyrhythm)[![<6 Kb](https://img.shields.io/badge/gzip%20size-%3C6%20kB-brightgreen.svg)](https://www.npmjs.com/package/polyrhythm)
+[![Travis](https://img.shields.io/travis/deanius/polyrhythm.svg)](https://travis-ci.org/deanius/polyrhythm)
+[![TypeScript](https://badges.frapsoft.com/typescript/version/typescript-next.svg?v=101)](https://github.com/ellerbrock/typescript-badges/)<a href="#badge"><img alt="code style: prettier" src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square"></a>[![twitter link](https://img.shields.io/badge/twitter-@deaniusol-55acee.svg)](https://twitter.com/deaniusol)
 
 # Polyrhythm
 
@@ -121,3 +123,17 @@ Yes.
 
 Oh, you've come to the right place. [The test suite](/test/channel.test.ts) will explain.
 
+**How fast is it?**
+Nearly as fast as [RxJS](). But since performance tends to change (degrade) over time, the [Travis CI build output](https://travis-ci.org/github/deanius/polyrhythm) contains some benchmarks.
+
+**I want more examples!**
+
+So you want to know what else can be done? I'm in the process of migrating things, so bear with me, and I apologize in advance that I'm not a CSS wizard, it's not where I spend my time!
+
+- [A basic working React integration](https://codesandbox.io/s/polyrhythm-react-integration-jwqwe)
+- [A (streaming) autocomplete over the Google Books API](https://codesandbox.io/s/book-streamer-w1t8o)
+- [An illustrated demo of the ConcurrencyMode concept](https://codesandbox.io/s/polyrhythm-ny-countdown-e5itf)
+- [An elegant solution to when the UI changes out from under you when you're about to click something, and it moves](https://codesandbox.io/s/debounced-ui-d052f)
+- [A speech API demo with "serial" concurrency (TODO)]()
+- [`after`, the setTimeout you always wanted](/test/utils.test.ts)
+- See [All CodeSandbox Demos](https://codesandbox.io/search?refinementList%5Bnpm_dependencies.dependency%5D%5B0%5D=polyrhythm&page=1&configure%5BhitsPerPage%5D=12)
