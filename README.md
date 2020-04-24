@@ -70,26 +70,26 @@ const AutoCompleteResults = () => {
 
 ## Code Example—Explanation
 
-The listener returns the Observable of (ajax work + setState) and it is subscribed to according one of the 5 timing / concurrency strategies ("replace") by the framework. No explicit subscription management is needed on the part of the caller. This is because the entire listener is one giant Subscription which will be unsubscribed on unmount (or when the provided `deps` change).
+The listener returns the Observable of (ajax work + setState) and it is subscribed to according to one of the 5 timing / concurrency strategies ("replace") by the framework. No explicit subscription management is needed on the part of the caller. This is because the entire listener is one Subscription which will be unsubscribed on unmount (or when the provided `deps` change).
 
-The "replace" mode (ala RxJS' switchMap), cancels the previous XHR request immediately upon each new text change. Like adding a string quartet arrangement to a piece of music to finish it off, this Observable could include a debounce time in it to make it just a bit more polished ;) But the decoupling of the concurrency mode from the rest of the code, and making it available declaratively is very convenient.
+The "replace" mode (ala RxJS' switchMap), cancels the previous XHR request immediately upon each new text change. Like adding a string quartet arrangement to a piece of music to finish it off, this Observable could include a debounce time in it to make it just a bit more polished ;) But the decoupling of the concurrency mode from the rest of the code, and making it available declaratively is very convenient. ----> I don't disagree, but why is it convenient?
 
 ## React Hierarchy and Event Types
 
 The imports `trigger` and `useListener` are bound to the default event bus called a Channel. The components containing them need not have any parent-child relationship in the React hierarchy or pass props between them. They're cooperating via the string `type` value of `text/change` - (or via an all-caps constant if you prefer).
 
-Because `trigger` is a static import it needn't be passed as a prop between components. `useListener` will subscribe and unsubscribe as the component it is in (un)-mounted so as not to leak memory. _Any in-flight async effects, if they are returned Observables from listeners, will be canceled upon unmount!_
+Because `trigger` is a static import it need not be passed as a prop between components. `useListener` will subscribe and unsubscribe as its component is (un)-mounted so as not to leak memory. _Any in-flight async effects, if they are returned Observables from listeners, will be canceled upon unmount!_
 
-`useChannel` is available for more advanced scenarios where a different channel is desired, such as for keeping one sub-tree's events separated from the default, for privacy or whatever reasons.
+`useChannel` is available for more advanced scenarios where a different channel is desired, such as for keeping one sub-tree's events separated from the default for privacy or other reasons.
 
 # Why You Might Want To Use It
 
 - You're frustrated with the code of React hooks to manage async.
-- You think `useLayoutEffect` is confusing terminology
+- You think `useLayoutEffect` is confusing terminology.
 - You find React over-rendering happens because function props defeat memoization.
 - You find React's async state-setting annoying at best, and downright incorrect at worst.
 - You want to stick to the core JavaScript constructs, and suspect `async`/`await` is actually harmful.
-- You've never written a generator function ( `function*` ) and have no need to now, if its purpose can be obtained a structurally simpler way.
+- You've never written a generator function ( `function*` ) and have no need to now, if its purpose can be obtained in a structurally simpler way.
 - You like Promises, but don't like their lack of cancelability,
 - You want to build sophisticated UIs with arbitrarily precise timing control that Promises don't give you.
 - You've used RxJS but didn't like managing subscription objects, or [figuring out which operator to use](https://www.slideshare.net/ladyleet/rxjs-operators-real-world-use-cases-full-version).
