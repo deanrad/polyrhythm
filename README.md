@@ -8,6 +8,7 @@ A library with (optional) React bindings for coordinating multiple streams of as
 
 - 💙JQuery. No, really. See [#on](https://api.jquery.com/on/) and [#trigger](https://api.jquery.com/trigger/).
 - 💜RxJS. Nearly as old as JQuery.
+- 💜Redux-Observable. Async consequences of events.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
