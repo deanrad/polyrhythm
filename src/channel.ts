@@ -2,6 +2,7 @@ import { Subject, Observable, Subscription, of, from, concat } from 'rxjs';
 import { filter as _filter, tap, takeUntil } from 'rxjs/operators';
 import { mergeMap, concatMap, exhaustMap, switchMap } from 'rxjs/operators';
 import { toggleMap } from './toggleMap';
+export { toggleMap } from './toggleMap';
 export { Subscription } from 'rxjs';
 
 export interface Event {
@@ -63,7 +64,7 @@ export enum ConcurrencyMode {
   ignore = 'ignore',
   /**
    * Any new Observable is not subscribed if another is running, and
-   * the previous one is canceled. (ala switchMap with empty()) */
+   * the previous one is canceled. (ala switchMap with empty() aka toggleMap) */
   toggle = 'toggle',
 }
 

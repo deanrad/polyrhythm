@@ -1,6 +1,6 @@
 {
   "name": "polyrhythm",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "author": "Dean Radcliffe",
   "main": "dist/index.js",

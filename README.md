@@ -1,5 +1,6 @@
 [![npm version](https://badge.fury.io/js/polyrhythm.svg)](https://badge.fury.io/js/polyrhythm)[![<6 Kb](https://img.shields.io/badge/gzip%20size-%3C6%20kB-brightgreen.svg)](https://www.npmjs.com/package/polyrhythm)
 [![Travis](https://img.shields.io/travis/deanius/polyrhythm.svg)](https://travis-ci.org/deanius/polyrhythm)
+[![Maintainability](https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/maintainability)](https://codeclimate.com/github/deanius/polyrhythm/maintainability)
 [![TypeScript](https://badges.frapsoft.com/typescript/version/typescript-next.svg?v=101)](https://github.com/ellerbrock/typescript-badges/)<a href="#badge"><img alt="code style: prettier" src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square"></a>[![twitter link](https://img.shields.io/badge/twitter-@deaniusol-55acee.svg)](https://twitter.com/deaniusol)
 
 # Polyrhythm
@@ -15,8 +16,9 @@ A library with (optional) React bindings for coordinating multiple streams of as
 
 - [What Is It](#what-is-it)
 - [Why You Might Need it](#why-you-might-need-it)
-- [Installation](#installation)
+- [Concurrency Modes - Declarative timing control](#concurrency-modes---declarative-timing-control)
 - [Polyrhythm - First Steps](#polyrhythm---first-steps)
+  - [Installation](#installation)
   - [Code Example - Trigger Events](#code-example---trigger-events)
   - [Code Example - Respond to Events](#code-example---respond-to-events)
   - [React Component Layout](#react-component-layout)
@@ -35,33 +37,47 @@ All the good aspects of a Redux-like Command-Object pattern, plus an ability to 
 
 # Why You Might Need it
 
-- You're frustrated with the code of React hooks to manage async.
-- You think `useLayoutEffect` is confusing terminology.
-- You find React over-rendering happens because function props defeat memoization.
-- You find React's async state-setting annoying at best, and downright incorrect at worst.
-- You've used RxJS but didn't like managing subscription objects, or [figuring out whether its switchMap or concatMap](https://www.slideshare.net/ladyleet/rxjs-operators-real-world-use-cases-full-version).
-- You want to stick to the core JavaScript constructs, and suspect `async`/`await` is actually harmful.
-- You've never written a generator function ( `function*` ) and have no need to now, if its purpose can be obtained in a simpler way.
-- You like Promises, but don't like their lack of cancelability.
-- You want to build sophisticated UIs with arbitrarily precise timing control that Promises don't give you.
-- You don't like the risk that a bug in each new feature may interfere with other features' operation.
-- You want a framework that lets you err on the side of not surfacing exceptions to users, and isolate error zones.
+First of all, you want to build sophisticated UIs with arbitrarily precise timing, and robustness in the face of growing requirments. You may have also started to encounter these limits with the ways many UI tools deal with async and effects.
 
-Maybe you're just a [crank](https://crank.js.org/), or you walked into an [Elm](https://elm-lang.org/) tree. Or you like the musical name and metaphors and want to cross-pollinate those musical centers of your brain while coding. I don't know, but I've had a blast building stuff with it, much of which I'll upload into [The Showcase](http://todo.org) as I update them all to 1.0.0 syntax from a couple of years of iterating toward this one, which is now looking to be very stable (thus the 1.0.0! 🏆)
+- You like Promises, but don't like their lack of cancelability.
+- You find React over-rendering happens too much, and props lists grow unchecked.
+- You're frustrated with the code of React hooks to manage async (`useLayoutEffect` ?).
+- You find React's async state-setting creating needless delay.
+- You've used RxJS but didn't like managing subscription objects, or [figuring out which operator to use](https://www.slideshare.net/ladyleet/rxjs-operators-real-world-use-cases-full-version).
+- You've never written a generator function ( `function*` ) and have no need to now, if its purpose can be obtained in a simpler way.
+- You want to stick to the core JavaScript constructs, and suspect `async`/`await` is actually harmful.
+
+Maybe you're a [Svelte](https://svelte.dev/), [CrankJS](https://crank.js.org/), or [Elm](https://elm-lang.org/) fan who wants to get those benefits in plain ES6 Javascript. Or you like the musical name and metaphors of polyrhythm. Whatever your reason might be, I've had a blast building stuff with it, much of which I'll upload into [The Showcase](http://todo.org) as I update them all to 1.0.0 syntax. And like all things in rhythm, it all begins with solid control of _timing_.
 
 ---
 
-# Installation
+# Concurrency Modes - Declarative timing control
 
-```
-npm install polyrhythm rxjs
+Did you know that browsers have a limited # of connections allowed they can use at a time? Ask me how I found out when some of my Google Analytics events got dropped due to event-firing happening too often 😅! App behaviors like this are usually baked into the structure of applications, thus hard to change. But **polyrhythm** gives you 5 concurrency modes you can plug in trivially as configuration parameters. For example, to ensure that Google Analytics traffic buffers up on a queue so that it uses only one connection, just add a ListenerConfig object with a different `mode` than the default.
+
+```js
+listen(
+  'user/click',
+  event => {
+    return sendGoogleAnalytics(event.payload);
+  },
+  { mode: 'serial' }
+);
 ```
 
-Then use as the examples.
+And you're done. There's no impact on what the sendGoogleAnalytics function does to switch modes. It simply returns an Observable (or deferred Promise) of its work that already allows for its own cancelability and you're done. You could even detect at runtime if there's sufficient bandwidth and change the mode to `parallel` on the fly, by resubscribing the listener with a different mode. This lets you avoid painting yourself into a corner with your initial choice - instead of timing control defining the shape of your app, you plug in any of these well-tested modes at will. Happier users are the result!
+
+> Watch a [Loom Video on these concurrency modes](https://www.loom.com/share/3736003a75bd497eab062c97af0113fc)
 
 ---
 
 # Polyrhythm - First Steps
+
+## Installation
+
+```
+npm install polyrhythm rxjs
+```
 
 ## Code Example - Trigger Events
 
@@ -105,7 +121,9 @@ const AutoCompleteResults = () => {
 };
 ```
 
-## React Component Layout
+Outside of React, the functions `trigger`, `listen` and `filter` work with the same arguments as shown above, so polyrhythm can be useful in any JavaScript environment, or even to communicate between JavaScript techs in the same app.
+
+## Flexible Component Layout
 
 The components are connected strictly through the `type`s of events they `trigger` and `listen` for, not through any parent-child coupling. The components are in need of fewer props of each other, since the event bus severs their dependency. Easier code refactoring and improved reuse as a result.
 
@@ -129,36 +147,15 @@ The listener returns the Observable of (ajax work + setState) and it is subscrib
 
 The "replace" mode (ala RxJS' switchMap), cancels the previous XHR request immediately upon each new text change. This Observable could include a debounce time in it to make it just a bit more polished ;) But the ability to "plug-in" the concurrency mode independent from the rest of the code is what makes finding the solution to 95% of the most common UI timing issues easy.
 
-## React Hierarchy and Event Types
+## React Lifecycle and memoization
 
-The imports `trigger` and `useListener` are bound to the default event bus called a Channel. The components containing them need not have any parent-child relationship in the React hierarchy or pass props between them. They're cooperating via the string `type` value of `text/change` - (or via an all-caps constant if you prefer).
+The imports `trigger` and `useListener` are bound to the default event bus called a Channel. Because `trigger` is a static import it need not be passed as a prop between components.
 
-Because `trigger` is a static import it need not be passed as a prop between components. `useListener` will subscribe and unsubscribe as its component is in (un)-mounted so as not to leak memory. _Any in-flight async effects, if they are returned Observables from listeners, will be canceled upon unmount!_
+The components containing them need not have any parent-child relationship in the React hierarchy or pass props between them. They're cooperating via the string `type` value of `text/change` - (or via an all-caps constant if you prefer).
 
-`useChannel` is available for more advanced scenarios where a different channel is desired, such as for keeping one sub-tree's events separated from the default, for privacy or other reasons.
+`useListener` will subscribe and unsubscribe as its component is in (un)-mounted so as not to leak memory. _Any in-flight async effects, if they are returned Observables from listeners, will be canceled upon unmount!_
 
-## Concurrency?
-
-Did you know that browsers have a limited # of connections allowed they can use at a time? Ask me how I found out when some of my Google Analytics events got dropped due to event-firing happening too often 😅! App behaviors like this are usually implicitly defined in applications, and hard to change. But **polyrhythm** gives you 5 concurrency modes you can plug in trivially. For example, to ensure that Google Analytics traffic buffers up on a queue so that it uses only one connection, just add a ListenerConfig object with a different `mode` than the default.
-
-```js
-listen(
-  'user/click',
-  event => {
-    return sendGoogleAnalytics(event.type, event.payload);
-  },
-  { mode: 'serial' }
-);
-```
-
-And you're done. Very little impact on what the sendGoogleAnalytics function knows, since it returns an Observable of its work that already allows for its own cancelability, and ability to be deferred until the previous listener's Observable has become `complete`.
-
-Other modes exist to cover the cases when we:
-
-- Wouldn't want to resend if we were all ready sending (aka `mute` mode)
-- Want to cancel the existing send when told to send a new one (aka `cutoff` mode)
-
-The default, `parallel`, is just to fire whenever told, not trying to limit or defer at all.
+`useChannel` is available for more advanced scenarios where a different channel is desired, such as for keeping one sub-tree's events separated from the default, for privacy, simulating a server in-browser (!), or other reasons.
 
 # FAQ
 
