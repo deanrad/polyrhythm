@@ -137,6 +137,29 @@ Because `trigger` is a static import it need not be passed as a prop between com
 
 `useChannel` is available for more advanced scenarios where a different channel is desired, such as for keeping one sub-tree's events separated from the default, for privacy or other reasons.
 
+## Concurrency?
+
+Did you know that browsers have a limited # of connections allowed they can use at a time? Ask me how I found out when some of my Google Analytics events got dropped due to event-firing happening too often 😅! App behaviors like this are usually implicitly defined in applications, and hard to change. But **polyrhythm** gives you 5 concurrency modes you can plug in trivially. For example, to ensure that Google Analytics traffic buffers up on a queue so that it uses only one connection, just add a ListenerConfig object with a different `mode` than the default.
+
+```js
+listen(
+  'user/click',
+  event => {
+    return sendGoogleAnalytics(event.type, event.payload);
+  },
+  { mode: 'serial' }
+);
+```
+
+And you're done. Very little impact on what the sendGoogleAnalytics function knows, since it returns an Observable of its work that already allows for its own cancelability, and ability to be deferred until the previous listener's Observable has become `complete`.
+
+Other modes exist to cover the cases when we:
+
+- Wouldn't want to resend if we were all ready sending (aka `mute` mode)
+- Want to cancel the existing send when told to send a new one (aka `cutoff` mode)
+
+The default, `parallel`, is just to fire whenever told, not trying to limit or defer at all.
+
 # FAQ
 
 **Got TypeScript typings?**
