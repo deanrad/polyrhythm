@@ -12,19 +12,57 @@ A library with (optional) React bindings for coordinating multiple streams of as
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Polyrhythm](#polyrhythm)
-  - [Code Example](#code-example)
+
+- [What Is It](#what-is-it)
+- [Why You Might Need it](#why-you-might-need-it)
+- [Installation](#installation)
+- [Polyrhythm - First Steps](#polyrhythm---first-steps)
+  - [Code Example - Trigger Events](#code-example---trigger-events)
+  - [Code Example - Respond to Events](#code-example---respond-to-events)
+  - [React Component Layout](#react-component-layout)
   - [Code Example—Explanation](#code-exampleexplanation)
   - [React Hierarchy and Event Types](#react-hierarchy-and-event-types)
-- [Why You Might Want To Use It](#why-you-might-want-to-use-it)
-- [Installation](#installation)
 - [FAQ](#faq)
+- [Examples](#examples)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-# Polyrhythm
-## Code Example
+
+# What Is It
+
+A Domain Specific Language for building UIs.
+
+All the good aspects of a Redux-like Command-Object pattern, plus an ability to control for async overlap in precise ways using Promises, or optimally using [RxJS Observables]().
+
+# Why You Might Need it
+
+- You're frustrated with the code of React hooks to manage async.
+- You think `useLayoutEffect` is confusing terminology
+- You find React over-rendering happens because function props defeat memoization.
+- You find React's async state-setting annoying at best, and downright incorrect at worst.
+- You've used RxJS but didn't like managing subscription objects, or [figuring out whether its switchMap or concatMap](https://www.slideshare.net/ladyleet/rxjs-operators-real-world-use-cases-full-version).
+- You want to stick to the core JavaScript constructs, and suspect `async`/`await` is actually harmful.
+- You've never written a generator function ( `function*` ) and have no need to now, if its purpose can be obtained a structurally simpler way.
+- You like Promises, but don't like their lack of cancelability,
+- You want to build sophisticated UIs with arbitrarily precise timing control that Promises don't give you.
+
+Maybe you're just a [crank](https://crank.js.org/), or you walked into an [Elm](https://elm-lang.org/) tree. Or you like the musical name and metaphors and want to cross-pollinate those musical centers of your brain while coding. I don't know, but I've had a blast building stuff with it, much of which I'll upload into [The Showcase](http://todo.org) as I update them all to 1.0.0 syntax from a couple of years of iterating toward this one, which is now looking to be very stable (thus the 1.0.0! 🏆)
+
+---
+
+# Installation
+
+```
+npm install polyrhythm rxjs
+```
+
+Then use as the examples.
+
+---
+
+# Polyrhythm - First Steps
+
+## Code Example - Trigger Events
 
 Trigger events with named `type` fields, and arbitrary payloads from event handlers, or async effects:
 
@@ -37,7 +75,9 @@ const AutoComplete = () => (<input type="text"
     }}>)
 ```
 
-Respond to them in other components using `useListener` or `useFilter`:
+## Code Example - Respond to Events
+
+Respond to them in the same, or other components using `useListener` or `useFilter`:
 
 ```js
 import { useState } from 'react';
@@ -63,10 +103,23 @@ const AutoCompleteResults = () => {
   // return <ul> mapped over results as <li/>
 };
 ```
+
+## React Component Layout
+
+The components are connected strictly through the `type`s of events they `trigger` and `listen` for, not through any parent-child coupling. The components are in need of fewer props of each other, since the event bus severs their dependency. Easier code refactoring and improved reuse as a result.
+
+```.js
+<Form>
+  <AutoComplete/>
+  <AutoResults/>
+</Form>
+```
+
 <details>
 <summary>And there you have an autocomplete, the Hello World of RxJS!</summary>
 
 ![](https://johnjohnston.info/106/wp-content/uploads/2013/12/google_autocomplete.gif)
+
 </details>
 
 ## Code Example—Explanation
@@ -82,31 +135,6 @@ The imports `trigger` and `useListener` are bound to the default event bus calle
 Because `trigger` is a static import it needn't be passed as a prop between components. `useListener` will subscribe and unsubscribe as the component it is in (un)-mounted so as not to leak memory. _Any in-flight async effects, if they are returned Observables from listeners, will be canceled upon unmount!_
 
 `useChannel` is available for more advanced scenarios where a different channel is desired, such as for keeping one sub-tree's events separated from the default, for privacy or whatever reasons.
-
-# Why You Might Want To Use It
-
-- You're frustrated with the code of React hooks to manage async.
-- You think `useLayoutEffect` is confusing terminology
-- You find React over-rendering happens because function props defeat memoization.
-- You find React's async state-setting annoying at best, and downright incorrect at worst.
-- You want to stick to the core JavaScript constructs, and suspect `async`/`await` is actually harmful.
-- You've never written a generator function ( `function*` ) and have no need to now, if its purpose can be obtained a structurally simpler way.
-- You like Promises, but don't like their lack of cancelability,
-- You want to build sophisticated UIs with arbitrarily precise timing control that Promises don't give you.
-- You've used RxJS but didn't like managing subscription objects, or [figuring out which operator to use](https://www.slideshare.net/ladyleet/rxjs-operators-real-world-use-cases-full-version).
-
-Maybe you're just a [crank](https://crank.js.org/), or you walked into an [Elm](https://elm-lang.org/) tree. Or you like the musical name and metaphors and want to cross-pollinate those musical centers of your brain while coding. I don't know, but I've had a blast building stuff with it, much of which I'll upload into [The Showcase](http://todo.org) as I update them all to 1.0.0 syntax from a couple of years of iterating toward this one, which is now looking to be very stable (thus the 1.0.0! 🏆)
-
----
-# Installation
-
-```
-npm install polyrhythm rxjs
-```
-
-Then use as the examples show.
-
----
 
 # FAQ
 
@@ -130,6 +158,8 @@ Nearly as fast as [RxJS](). But since performance tends to change (degrade) over
 **I want more examples!**
 
 So you want to know what else can be done? I'm in the process of migrating things, so bear with me, and I apologize in advance that I'm not a CSS wizard, it's not where I spend my time!
+
+# Examples
 
 - [A basic working React integration](https://codesandbox.io/s/polyrhythm-react-integration-jwqwe)
 - [A (streaming) autocomplete over the Google Books API](https://codesandbox.io/s/book-streamer-w1t8o)

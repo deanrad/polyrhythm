@@ -16,7 +16,8 @@
     "test:watch": "yarn test --watch --watch-files 'test/*test*.ts' --watch-files 'src/*.ts'",
     "test:perf": "ts-mocha -r esm -p tsconfig.json test/perf*.ts ",
     "lint": "tsdx lint",
-    "doc": "typedoc --theme minimal --out docs/ src/"
+    "doc": "typedoc --theme minimal --out docs/ src/",
+    "doctoc": "doctoc ."
   },
   "peerDependencies": {
     "react": "^16.12.0",
