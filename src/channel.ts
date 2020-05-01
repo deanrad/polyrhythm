@@ -19,6 +19,10 @@ export interface Predicate {
 
 export type EventMatcher = string | string[] | RegExp | Predicate | boolean;
 
+export interface EventGraph {
+  [key: string]: string[];
+}
+
 /**
  * A Filter runs a synchronous function prior to any listeners
  * being invoked, and can cancel future filters, and all listeners
@@ -88,6 +92,8 @@ export class Channel {
   private listenerEnders: Map<Predicate, Subject<any>>;
   private listenerParts: Map<Predicate, Subject<any>>;
   public errors: Subject<string | Error>;
+  public eventEdges: Subject<[string, string]>;
+  private triggerStack: Array<string>;
 
   constructor() {
     this.channel = new Subject<Event>();
@@ -99,10 +105,13 @@ export class Channel {
     if (process?.env?.NODE_ENV !== 'test') {
       this.errors.subscribe(e => console.error(e));
     }
+    this.triggerStack = new Array<string>();
+    this.eventEdges = new Subject<[string, string]>();
   }
 
   public trigger(type: string, payload?: any): Event {
     const event = { type };
+    this.triggerStack.push(type);
     payload && Object.assign(event, { payload });
 
     for (const [predicate, filter] of this.filters.entries()) {
@@ -118,6 +127,14 @@ export class Channel {
       }
     }
 
+    if (this.triggerStack.length > 1) {
+      const lastIdx = this.triggerStack.length - 1;
+      const fromType = this.triggerStack[lastIdx - 1];
+      const toType = this.triggerStack[lastIdx];
+      this.eventEdges.next([fromType, toType]);
+    }
+
+    this.triggerStack.pop();
     return event;
   }
 
@@ -214,6 +231,7 @@ export class Channel {
 
   public reset() {
     this.filters.clear();
+    this.triggerStack = [];
     for (let listenerPredicate of this.listeners.keys()) {
       this.deactivateListener(listenerPredicate);
     }

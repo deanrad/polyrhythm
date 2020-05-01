@@ -8,8 +8,9 @@ import {
   asyncScheduler,
   throwError,
   of,
+  pipe,
 } from 'rxjs';
-import { scan, tap } from 'rxjs/operators';
+import { scan, tap, distinctUntilChanged } from 'rxjs/operators';
 import {
   trigger,
   query,
@@ -23,6 +24,7 @@ import {
   EventMatcher,
   ConcurrencyMode,
   Filter,
+  EventGraph,
 } from '../src/channel';
 import { randomId, after } from '../src/utils';
 
@@ -48,6 +50,45 @@ function errorsOn(
   example.subscription = channel.errors
     .pipe(scan((a, e) => [...a, e], new Array<string | Error>()))
     .subscribe(seen);
+  return seen;
+}
+
+function edgesOf(
+  channel: Channel,
+  example: any
+): BehaviorSubject<Array<[string, string]>> {
+  const seen = new BehaviorSubject<Array<[string, string]>>([]);
+  example.subscription = channel.eventEdges
+    .pipe(scan((a, i) => [...a, i], new Array<[string, string]>()))
+    .subscribe(seen);
+
+  return seen;
+}
+
+const buildEventGraph = () =>
+  pipe(
+    scan((all: EventGraph, [from, to]) => {
+      let existingTargets = all[from];
+      if (existingTargets && existingTargets.includes(to)) {
+        return all;
+      }
+      if (!existingTargets) {
+        return { ...all, [from]: [to] };
+      }
+      return {
+        ...all,
+        [from]: [...existingTargets, to],
+      };
+    }, {}),
+    distinctUntilChanged()
+  );
+
+function graphOf(channel: Channel, example: any): BehaviorSubject<EventGraph> {
+  const seen = new BehaviorSubject<EventGraph>({});
+  example.subscription = channel.eventEdges
+    .pipe(buildEventGraph())
+    .subscribe(seen);
+
   return seen;
 }
 
@@ -376,6 +417,34 @@ describe('Sequences of Methods', () => {
         { type: 'effect', payload: 2.718 },
         { type: 'cause/complete' },
       ]);
+    });
+
+    it('exposes event graph edges singly', function() {
+      const seen = edgesOf(channel, this);
+      listen('cause', () => of(2.718), {
+        trigger: { next: 'effect' },
+      });
+      trigger('cause');
+      expect(seen.value).to.eql([['cause', 'effect']]);
+    });
+
+    it('exposes the event graph', function() {
+      const seen = graphOf(channel, this);
+      listen('cause', () => of(2.718), {
+        trigger: { next: 'effect' },
+      });
+      listen('cause', () => {
+        trigger('effect1');
+        trigger('effect2');
+      });
+      listen('effect2', () => {
+        trigger('effectInfinity');
+      });
+      trigger('cause');
+      expect(seen.value).to.eql({
+        cause: ['effect', 'effect1', 'effect2'],
+        effect2: ['effectInfinity'],
+      });
     });
   });
 
