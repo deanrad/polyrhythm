@@ -87,6 +87,7 @@ export class Channel {
   private listeners: Map<Predicate, Listener>;
   private listenerEnders: Map<Predicate, Subject<any>>;
   private listenerParts: Map<Predicate, Subject<any>>;
+  public errors: Subject<string | Error>;
 
   constructor() {
     this.channel = new Subject<Event>();
@@ -94,6 +95,10 @@ export class Channel {
     this.listeners = new Map<Predicate, Listener>();
     this.listenerEnders = new Map<Predicate, Subject<any>>();
     this.listenerParts = new Map<Predicate, Subject<any>>();
+    this.errors = new Subject<string | Error>();
+    if (process?.env?.NODE_ENV !== 'test') {
+      this.errors.subscribe(e => console.error(e));
+    }
   }
 
   public trigger(type: string, payload?: any): Event {
@@ -153,6 +158,10 @@ export class Channel {
         const part = concat(userReturned, applyCompleteTrigger());
         parts.next(part);
       } catch (e) {
+        this.errors.next(e);
+        this.errors.next(
+          `A listener function threw an exception and will be unsubscribed`
+        );
         canceler.unsubscribe();
       }
     };
@@ -177,6 +186,10 @@ export class Channel {
 
     const listenerObserver = {
       error: (err: Error) => {
+        this.errors.next(err);
+        this.errors.next(
+          `A listener function notified with an error and will be unsubscribed`
+        );
         canceler.unsubscribe();
         if (userTriggers.error) {
           this.trigger(userTriggers.error, err);

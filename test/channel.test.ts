@@ -7,7 +7,6 @@ import {
   range,
   asyncScheduler,
   throwError,
-  concat,
   of,
 } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
@@ -18,6 +17,8 @@ import {
   listen,
   on,
   reset,
+  channel,
+  Channel,
   Event,
   EventMatcher,
   ConcurrencyMode,
@@ -35,9 +36,18 @@ function eventsMatching(
     .subscribe(seen);
 
   // can clean up with an afterEach
-  example.unsubscribe = () => {
-    sub.unsubscribe();
-  };
+  example.subscription = sub;
+  return seen;
+}
+
+function errorsOn(
+  channel: Channel,
+  example: any
+): BehaviorSubject<Array<string | Error>> {
+  const seen = new BehaviorSubject<Array<string | Error>>([]);
+  example.subscription = channel.errors
+    .pipe(scan((a, e) => [...a, e], new Array<string | Error>()))
+    .subscribe(seen);
   return seen;
 }
 
@@ -58,11 +68,6 @@ describe('Sequences of Methods', () => {
   const throwsError = () => {
     callCount++;
     return throwError(new Error('Oops'));
-  };
-
-  const throwsErrorLater = () => {
-    callCount++;
-    return concat(after(1, 1), throwError(new Error('Oops')));
   };
 
   beforeEach(() => {
@@ -282,6 +287,21 @@ describe('Sequences of Methods', () => {
       expect(callCount).to.equal(1);
       expect(triggerEvent).not.to.throw();
       expect(callCount).to.equal(1);
+    });
+
+    it('exposes listener exceptions on channel.errors (logs when NODE_ENV is not test)', function() {
+      let errors = errorsOn(channel, this);
+      listen(true, thrower);
+      triggerEvent();
+
+      expect(errors.value.length).to.be.greaterThan(0);
+    });
+    it('exposes listener errors on channel.errors (logs when NODE_ENV is not test)', function() {
+      let errors = errorsOn(channel, this);
+      listen(true, throwsError);
+      triggerEvent();
+
+      expect(errors.value.length).to.be.greaterThan(0);
     });
 
     it('cannot modify the event', () => {
