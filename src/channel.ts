@@ -270,6 +270,13 @@ function toObservable(_results: any) {
   // An Observable is preferred
   if (_results.subscribe) return _results;
 
+  // A Subscrition is ok - can be canceled but not awaited
+  if (_results.unsubscribe)
+    return new Observable(() => {
+      // an Observable's return value is its cleanup function
+      return () => _results.unsubscribe();
+    });
+
   // A Promise is acceptable
   if (_results.then) return from(_results);
 

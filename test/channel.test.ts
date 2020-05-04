@@ -128,6 +128,65 @@ describe('Sequences of Methods', () => {
         it('May return nothing or a sync value');
         it('May return an Observable');
         it('May return a Promise');
+        describe('May return a Subscription', () => {
+          it('replace: will unsubscribe the previous', function() {
+            const seen = eventsMatching(true, this);
+            // listener returning a subscription
+            listen(
+              event.type,
+              () => new Subscription(() => trigger('unsubscribe')),
+              { mode: ConcurrencyMode.replace }
+            );
+
+            triggerEvent();
+            triggerEvent();
+            triggerEvent();
+
+            const triggered = seen.value.map(e => e.type);
+            expect(triggered).to.eql([
+              'anytype',
+              'anytype',
+              'unsubscribe',
+              'anytype',
+              'unsubscribe',
+            ]);
+          });
+          it('toggle: will unsubscribe the previous', function() {
+            const seen = eventsMatching(true, this);
+            listen(
+              event.type,
+              () => new Subscription(() => trigger('unsubscribe')),
+              { mode: ConcurrencyMode.toggle }
+            );
+
+            triggerEvent();
+            triggerEvent();
+            triggerEvent();
+
+            const triggered = seen.value.map(e => e.type);
+            expect(triggered).to.eql([
+              'anytype',
+              'anytype',
+              'unsubscribe',
+              'anytype',
+            ]);
+          });
+          it('parallel, serial, ignore: will not unsubscribe the previous', function() {
+            const seen = eventsMatching(true, this);
+            listen(
+              event.type,
+              () => new Subscription(() => trigger('unsubscribe')),
+              { mode: ConcurrencyMode.parallel }
+            );
+
+            triggerEvent();
+            triggerEvent();
+            triggerEvent();
+
+            const triggered = seen.value.map(e => e.type);
+            expect(triggered).to.eql(['anytype', 'anytype', 'anytype']);
+          });
+        });
       });
       describe('Config - concurrency and re-triggering', () => {
         it('See #listen / #trigger specs');
