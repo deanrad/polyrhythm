@@ -53,7 +53,7 @@ Maybe you're a [Svelte](https://svelte.dev/), [CrankJS](https://crank.js.org/), 
 
 # Concurrency Modes - Declarative timing control
 
-Did you know that browsers have a limited # of connections allowed they can use at a time? Ask me how I found out when some of my Google Analytics events got dropped due to event-firing happening too often 😅! App behaviors like this are usually baked into the structure of applications, thus hard to change. But **polyrhythm** gives you 5 concurrency modes you can plug in trivially as configuration parameters. For example, to ensure that Google Analytics traffic buffers up on a queue so that it uses only one connection, just add a ListenerConfig object with a different `mode` than the default.
+Did you know that browsers have a limited # of connections allowed they can use at a time? Ask me how I found 😅! App behaviors like this are usually baked into the structure of applications, extremely hard to change. But **polyrhythm** gives you 5 concurrency modes you can plug in trivially as configuration parameters. For example, to ensure that Google Analytics traffic buffers up on a queue so that it uses only one connection, just add a ListenerConfig object with a different `mode` than the default.
 
 ```js
 listen(
@@ -66,6 +66,10 @@ listen(
 ```
 
 And you're done. There's no impact on what the sendGoogleAnalytics function does to switch modes. It simply returns an Observable (or deferred Promise) of its work that already allows for its own cancelability and you're done. You could even detect at runtime if there's sufficient bandwidth and change the mode to `parallel` on the fly, by resubscribing the listener with a different mode. This lets you avoid painting yourself into a corner with your initial choice - instead of timing control defining the shape of your app, you plug in any of these well-tested modes at will. Happier users are the result!
+
+If async effects were sounds, this diagram shows how they might overlap/queue/cancel each other.
+
+<a href="https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png"><img height="400" src="https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png"></a>
 
 > Watch a [Loom Video on these concurrency modes](https://www.loom.com/share/3736003a75bd497eab062c97af0113fc)
 
@@ -183,9 +187,11 @@ So you want to know what else can be done? I'm in the process of migrating thing
 # Examples
 
 - [A basic working React integration](https://codesandbox.io/s/polyrhythm-react-integration-jwqwe)
+- [A VanillaJS (non-React) version](https://codesandbox.io/s/polyrhythm-ping-pong-mcrh9)
 - [A (streaming) autocomplete over the Google Books API](https://codesandbox.io/s/book-streamer-w1t8o)
 - [`concatMap`, meet the `serial` ConcurrencyMode](https://codesandbox.io/s/polyrhythm-serial-mode-scroller-r94fj)
 - [`after`, the setTimeout you always wanted](/test/utils.test.ts)
+- [A remake of RxJS Drag & Drop](https://codesandbox.io/s/polyrhythm-drag-drop-os8n7?file=/src/index.js)
 - [An illustrated demo of the ConcurrencyMode concept](https://codesandbox.io/s/polyrhythm-ny-countdown-e5itf)
 - [An elegant solution to when the UI changes out from under you when you're about to click something, and it moves](https://codesandbox.io/s/debounced-ui-d052f)
 - See [All CodeSandbox Demos](https://codesandbox.io/search?refinementList%5Bnpm_dependencies.dependency%5D%5B0%5D=polyrhythm&page=1&configure%5BhitsPerPage%5D=12)
