@@ -23,7 +23,15 @@ export interface AwaitableObservable
  * is called explicitly (via subscribe) or implicitly (toPromise(), await).
  * For a delay of 0, the function is executed synchronously when .subscribe is called.
  * @returns An Observable of the object or thunk return value. It is 'thenable', so may also be awaited directly.
- * @example after(100, () => new Date().getTime()).subscribe(msec => ...)
+ * ```
+ * // Examples:
+ * // awaited Promise
+ * await after(100, () => new Date())
+ * // unawaited Promise
+ * after(100, () => new Date()).toPromise()
+ * // unresolving Promise
+ * after(Infinity, () => new Date()).toPromise()
+ * ```
  */
 export const after = (
   ms: number,

@@ -5,7 +5,9 @@
 
 # Polyrhythm
 
-A library with (optional) React bindings for coordinating multiple streams of async using RxJS Observables. Inspired by:
+Polyrhythm is a Domain Specific Language for building UIs with JavaScript.
+
+Inspired by:
 
 - 💙JQuery. No, really. See [#on](https://api.jquery.com/on/) and [#trigger](https://api.jquery.com/trigger/).
 - 💜RxJS. Nearly as old as JQuery.
@@ -15,15 +17,17 @@ A library with (optional) React bindings for coordinating multiple streams of as
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [What Is It](#what-is-it)
-- [Why You Might Need it](#why-you-might-need-it)
+- [Why You Might Want It](#why-you-might-want-it)
 - [Concurrency Modes - Declarative timing control](#concurrency-modes---declarative-timing-control)
 - [Polyrhythm - First Steps](#polyrhythm---first-steps)
   - [Installation](#installation)
   - [Code Example - Trigger Events](#code-example---trigger-events)
   - [Code Example - Respond to Events](#code-example---respond-to-events)
-  - [React Component Layout](#react-component-layout)
-  - [Code Example—Explanation](#code-exampleexplanation)
-  - [React Hierarchy and Event Types](#react-hierarchy-and-event-types)
+  - [Code Example — Explanation](#code-example--explanation)
+- [Polyrhythm - Core Concepts](#polyrhythm---core-concepts)
+  - [The Channel](#the-channel)
+  - [Filters and Listeners](#filters-and-listeners)
+  - [Multiple Channel support](#multiple-channel-support)
 - [FAQ](#faq)
 - [Examples](#examples)
 
@@ -31,29 +35,35 @@ A library with (optional) React bindings for coordinating multiple streams of as
 
 # What Is It
 
-A Domain Specific Language for building UIs.
+Polyrhythm is a TypeScript library with optional React bindings for coordinating multiple streams of async using RxJS Observables.
 
-All the good aspects of a Redux-like Command-Object pattern, plus an ability to control for async overlap in precise ways using Promises, or optimally using [RxJS Observables]().
+It's got all the good aspects of a Redux-like Command-Object pattern, plus an ability to control for async overlap in precise ways. It builds upon and uses [RxJS Observables](https://github.com/tc39/proposal-observable), and is compatible with Promises without requiring any functions to be marked `async`.
 
-# Why You Might Need it
+Like [Svelte](https://svelte.dev/), [CrankJS](https://crank.js.org/), and [Elm](https://elm-lang.org/), polyrhythm envisions that different primitives can compose into more beautiful apps and User Experiences than the current Web platform allows, and it does so using plain ES6 Javascript.
 
-First of all, you want to build sophisticated UIs with arbitrarily precise timing, and robustness in the face of growing requirments. You may have also started to encounter these limits with the ways many UI tools deal with async and effects.
+# Why You Might Want It
 
-- You like Promises, but don't like their lack of cancelability.
-- You find React over-rendering happens too much, and props lists grow unchecked.
-- You're frustrated with the code of React hooks to manage async (`useLayoutEffect` ?).
-- You find React's async state-setting creating needless delay.
-- You've used RxJS but didn't like managing subscription objects, or [figuring out which operator to use](https://www.slideshare.net/ladyleet/rxjs-operators-real-world-use-cases-full-version).
-- You've never written a generator function ( `function*` ) and have no need to now, if its purpose can be obtained in a simpler way.
-- You want to stick to the core JavaScript constructs, and suspect `async`/`await` is actually harmful.
+First of all, you want to build sophisticated UIs with arbitrarily precise timing, and robustness in the face of growing requirments. You want to solve problems like accounting for out-of-order async, build features like autocomplete controls or session timeouts, or control audio and animation like in games. You may have also started to encounter these limits with the ways many UI tools deal with async, animations, and effects, for instance:
 
-Maybe you're a [Svelte](https://svelte.dev/), [CrankJS](https://crank.js.org/), or [Elm](https://elm-lang.org/) fan who wants to get those benefits in plain ES6 Javascript. Or you like the musical name and metaphors of polyrhythm. Whatever your reason might be, I've had a blast building stuff with it, much of which I'll upload into [The Showcase](http://todo.org) as I update them all to 1.0.0 syntax. And like all things in rhythm, it all begins with solid control of _timing_.
+- You've found React's asynchronous setState to be a source of bugs and edge cases.
+- You find your React's prop-lists growing, and want to pass fewer props than you currently must.
+- You find React's async state-setting creating delay and resource leaks.
+- You find Promise's lack of cancelability a poor use of resources.
+- You've used RxJS but found it hard to manage subscription objects, or choose between the `(concat|merge|flat|exhaust|switch)Map` operators.
+- You liked the directness of JQuery events, and think in terms of cause=>effect.
+- You want to deal with audio or animations-inherently async-and create bulletproof chains of behavior that are robust in the face of timing issues and errors.
+
+Maybe you like the musical name and metaphors of polyrhythm. Whatever your reason might be, I've had a blast building it, and making stuff with it, much of which I'll upload into [The Showcase](http://todo.org) as I update them all to 1.0.0 syntax.
+
+Now—to understand (poly)rhythm, one needs a solid command of _timing_.
 
 ---
 
 # Concurrency Modes - Declarative timing control
 
-Did you know that browsers have a limited # of connections allowed they can use at a time? Ask me how I found 😅! App behaviors like this are usually baked into the structure of applications, extremely hard to change. But **polyrhythm** gives you 5 concurrency modes you can plug in trivially as configuration parameters. For example, to ensure that Google Analytics traffic buffers up on a queue so that it uses only one connection, just add a ListenerConfig object with a different `mode` than the default.
+App code around timing is usually baked into the structure of applications, extremely hard to change. Either a function is async — and all its callers are — or it's not. Either you run your Promises in parallel using `Promise.all`, or you `await` them in a loop intentionally to run them serially. Changes to code built this way are non-trivial ones with more time required to change than we would like.
+
+But **polyrhythm** gives you 5 concurrency modes you can plug in trivially as configuration parameters. For example, to ensure that Google Analytics traffic buffers up on a queue so that it uses only one connection, just add a ListenerConfig object with a different `mode` than the default.
 
 ```js
 listen(
@@ -88,12 +98,18 @@ npm install polyrhythm rxjs
 Trigger events with named `type` fields, and arbitrary payloads from event handlers, or async effects:
 
 ```js
-import { trigger } from 'polyrhythm'
+import { trigger } from 'polyrhythm';
 
-const AutoComplete = () => (<input type="text"
-    onChange={({ target }) => {
-        trigger("text/change", { value: target.value})
-    }}>)
+const AutoCompleteInput = () => {
+  return (
+    <input
+      type="text"
+      onChange={({ target: { value } }) => {
+        trigger('text/change', { value });
+      }}
+    />
+  );
+};
 ```
 
 ## Code Example - Respond to Events
@@ -110,56 +126,70 @@ import { map, tap } from 'rxjs/operators';
 /* Others are 'toggle', 'ignore', 'serial' and 'parallel' */
 const AutoCompleteResults = () => {
   const [results, setResults] = useState([]);
+  // Apply AJAX results to local state
+  useFilter('autocomplete/results', ({ payload: data }) => {
+    setResults(data);
+  });
 
+  // Map text/change events to autocomplete/result events, with cancelation
   useListener(
     'text/change',
     ({ payload: { value: search } }) => {
       return ajax.get(`http://osolem.io/?${search}`).pipe(
         map(({ response }) => response.data),
-        tap(data => setResults(data))
+        tap(data => trigger('autocomplete/results', data))
       );
     },
     { mode: 'replace' }
   );
-  // return <ul> mapped over results as <li/>
+
+  //prettier-ignore
+  return <ul>{ results.map(result => <li>{result}</li>) } }</ul>
 };
 ```
 
-Outside of React, the functions `trigger`, `listen` and `filter` work with the same arguments as shown above, so polyrhythm can be useful in any JavaScript environment, or even to communicate between JavaScript techs in the same app.
+Outside of React, the functions `trigger`, `listen` and `filter` work with the same arguments as shown above, so polyrhythm can be useful in any JavaScript environment, or even to communicate between distinct JavaScript technologies in the same app.
 
-## Flexible Component Layout
+## Code Example — Explanation
 
-The components are connected strictly through the `type`s of events they `trigger` and `listen` for, not through any parent-child coupling. The components are in need of fewer props of each other, since the event bus severs their dependency. Easier code refactoring and improved reuse as a result.
+The component tree is the following:
 
-```.js
+```js
 <Form>
-  <AutoComplete/>
-  <AutoResults/>
+  <AutoCompleteInput />
+  <AutoCompleteResults />
 </Form>
 ```
 
-<details>
-<summary>And there you have an autocomplete, the Hello World of RxJS!</summary>
+The components are connected strictly through the `type`s of events they `trigger` and `listen` for, not through any parent-child coupling. The components are in need of fewer props of each other, since the event bus severs their dependency. Easier code refactoring and improved reuse as a result.
 
-![](https://johnjohnston.info/106/wp-content/uploads/2013/12/google_autocomplete.gif)
+The `AutoCompleteInput` triggers events of type `text/change` upon changes to its input box. It is merely a source of events, and `AutoCompleteResults` has a listener for these events.
 
-</details>
+The listener for `text/change` fires off Ajax requests on each one, but specifies the mode `replace`, so new `text/change` events cancel the old AJAX request and "replace" it with a new search. The AJAX' completion is marked by triggering an `autocomplete/results` with the result data becoming the `payload` of the event.
 
-## Code Example—Explanation
+The ability to "plug-in" the concurrency mode independent from the rest of the code makes coding the solution to 95% of the most common UI timing issues a piece of cake. And the ability to depend upon events by name, as well as call `trigger` from anywhere, can reduce the need to pass props, avoiding entire classes of memoization and over-rendering issues that can result from how props are passed.
 
-The listener returns the Observable of (ajax work + setState) and it is subscribed to according one of the 5 timing / concurrency strategies ("replace") by the framework. No explicit subscription management is needed on the part of the caller. This is because the entire listener is one Subscription which will be unsubscribed on unmount (or when the provided `deps` change).
+And there you have an autocomplete, the Hello World of Polyrhythm!
 
-The "replace" mode (ala RxJS' switchMap), cancels the previous XHR request immediately upon each new text change. This Observable could include a debounce time in it to make it just a bit more polished ;) But the ability to "plug-in" the concurrency mode independent from the rest of the code is what makes finding the solution to 95% of the most common UI timing issues easy.
+# Polyrhythm - Core Concepts
 
-## React Lifecycle and memoization
+## The Channel
 
-The imports `trigger` and `useListener` are bound to the default event bus called a Channel. Because `trigger` is a static import it need not be passed as a prop between components.
+The exported functions `trigger`, `useFilter` and `useListener` are bound to the default event bus called a Channel.
 
-The components containing them need not have any parent-child relationship in the React hierarchy or pass props between them. They're cooperating via the string `type` value of `text/change` - (or via an all-caps constant if you prefer).
+## Filters and Listeners
 
-`useListener` will subscribe and unsubscribe as its component is in (un)-mounted so as not to leak memory. _Any in-flight async effects, if they are returned Observables from listeners, will be canceled upon unmount!_
+The difference between a filter and a listener is how and when they run.
 
-`useChannel` is available for more advanced scenarios where a different channel is desired, such as for keeping one sub-tree's events separated from the default, for privacy, simulating a server in-browser (!), or other reasons.
+Filters are run prior to all listeners, synchronously, and sequentially. They can alter the event stream of a channel. An analogy to audio filters is apropos. If a filter throws an error, no downstream listeners will receive that event.
+
+Listeners are run independently of each other. If a listener has an error, that error will not be visible to the one who called `trigger`, nor interfere with other listeners. Furthermore that listener will be unsubscribed, as though it blew a fuse. An analogy applies to an audio sound-board with outputs to PA speakers, and to a recording device. If your recording device output blows a fuse, you'd still probably like the reset of the system to continue operating.
+
+`useFilter` and `useListener` are React wrappers over the polyrhythm exported functions `filter` and `listen`. (Listen is aliased `on`, in honor of JQuery). What these wrapper hooks do is limit the lifetime of the event listener, and its side-effects, to the lifetime of the hosting component. These hooks will subscribe and unsubscribe to the channel as their component is (un)-mounted, or explicit `deps`, may be passed, so as not to close over stale values.
+
+## Multiple Channel support
+
+`useChannel` is available for more advanced scenarios where a different channel is desired, such as for keeping one sub-tree's events separated from the default, for privacy, simulating a server in-browser (!), or other reasons. (This feature is in progress/experimental).
 
 # FAQ
 
@@ -178,11 +208,11 @@ Yes.
 Oh, you've come to the right place. [The test suite](/test/channel.test.ts) will explain.
 
 **How fast is it?**
-Nearly as fast as [RxJS](). But since performance tends to change (degrade) over time, the [Travis CI build output](https://travis-ci.org/github/deanius/polyrhythm) contains some benchmarks.
+Nearly as fast as RxJS. But since performance tends to change (degrade) over time, the [Travis CI build output](https://travis-ci.org/github/deanius/polyrhythm) contains some benchmarks.
 
 **I want more examples!**
 
-So you want to know what else can be done? I'm in the process of migrating things, so bear with me, and I apologize in advance that I'm not a CSS wizard, it's not where I spend my time!
+Help by building some :)
 
 # Examples
 
