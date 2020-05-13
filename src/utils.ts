@@ -1,6 +1,8 @@
 import { Subscribable, of, never, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
-export { concat } from 'rxjs/operators';
+export { concat } from 'rxjs';
+export { map, filter, tap, scan } from 'rxjs/operators';
+
 /**
  * Returns a random hex string, like a Git SHA. Not guaranteed to
  * be unique - just to within about 1 in 10,000.

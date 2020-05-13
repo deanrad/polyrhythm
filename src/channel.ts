@@ -98,9 +98,9 @@ export class Channel {
     this.listenerParts = new Map<Predicate, Subject<any>>();
     this.errors = new Subject<string | Error>();
     this.logs = new Subject<any>();
-    if (typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'test') {
+    if (!isTestMode()) {
       this.errors.subscribe(e => console.error(e));
-      this.logs.subscribe(e => console.log(e));
+      this.logs.subscribe(args => console.log(...args));
     }
   }
 
@@ -215,8 +215,9 @@ export class Channel {
     return listen(eventMatcher, listener, config);
   }
 
+  /** Logs to the console (but not in test mode) */
   public log(...args: any[]) {
-    console.log(...args);
+    this.logs.next(args);
   }
 
   public reset() {
@@ -245,6 +246,11 @@ export const listen = channel.listen.bind(channel);
 export const on = channel.on.bind(channel);
 export const log = channel.log.bind(channel);
 export const reset = channel.reset.bind(channel);
+
+function isTestMode() {
+  if (typeof process === 'undefined') return false;
+  return process?.env?.NODE_ENV === 'test';
+}
 
 function getEventPredicate(eventMatcher: EventMatcher) {
   let predicate: (event: Event) => boolean;

@@ -1,6 +1,6 @@
 {
   "name": "polyrhythm",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "license": "MIT",
   "author": "Dean Radcliffe",
   "repository": "https://github.com/deanius/polyrhythm",
@@ -21,8 +21,7 @@
     "doctoc": "doctoc ."
   },
   "peerDependencies": {
-    "react": "^16.12.0",
-    "rxjs": "^6.3.0"
+    "react": "^16.12.0"
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.4.5",
@@ -63,5 +62,8 @@
       "limit": "8 KB",
       "webpack": false
     }
-  ]
+  ],
+  "dependencies": {
+    "rxjs": "^6.5.5"
+  }
 }
