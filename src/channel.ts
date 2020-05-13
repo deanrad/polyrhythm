@@ -88,6 +88,7 @@ export class Channel {
   private listenerEnders: Map<Predicate, Subject<any>>;
   private listenerParts: Map<Predicate, Subject<any>>;
   public errors: Subject<string | Error>;
+  private logs: Subject<any>;
 
   constructor() {
     this.channel = new Subject<Event>();
@@ -96,8 +97,10 @@ export class Channel {
     this.listenerEnders = new Map<Predicate, Subject<any>>();
     this.listenerParts = new Map<Predicate, Subject<any>>();
     this.errors = new Subject<string | Error>();
-    if (process?.env?.NODE_ENV !== 'test') {
+    this.logs = new Subject<any>();
+    if (typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'test') {
       this.errors.subscribe(e => console.error(e));
+      this.logs.subscribe(e => console.log(e));
     }
   }
 
@@ -212,6 +215,10 @@ export class Channel {
     return listen(eventMatcher, listener, config);
   }
 
+  public log(...args: any[]) {
+    console.log(...args);
+  }
+
   public reset() {
     this.filters.clear();
     for (let listenerPredicate of this.listeners.keys()) {
@@ -236,6 +243,7 @@ export const query = channel.query.bind(channel);
 export const filter = channel.filter.bind(channel);
 export const listen = channel.listen.bind(channel);
 export const on = channel.on.bind(channel);
+export const log = channel.log.bind(channel);
 export const reset = channel.reset.bind(channel);
 
 function getEventPredicate(eventMatcher: EventMatcher) {
