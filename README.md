@@ -43,7 +43,7 @@ Like [Svelte](https://svelte.dev/), [CrankJS](https://crank.js.org/), and [Elm](
 
 # Why You Might Want It
 
-First of all, you want to build sophisticated UIs with arbitrarily precise timing, and robustness in the face of growing requirments. You want to solve problems like accounting for out-of-order async, build features like autocomplete controls or session timeouts, or control audio and animation like in games. You may have also started to encounter these limits with the ways many UI tools deal with async, animations, and effects, for instance:
+First of all, you want to build sophisticated UIs with arbitrarily precise timing, and robustness in the face of growing requirements. You want to solve problems like accounting for out-of-order async, build features like autocomplete controls or session timeouts, or control audio and animation like in games. You may have also started to encounter these limits with the ways many UI tools deal with async, animations, and effects, for instance:
 
 - You've found React's asynchronous setState to be a source of bugs and edge cases.
 - You find your React's prop-lists growing, and want to pass fewer props than you currently must.
