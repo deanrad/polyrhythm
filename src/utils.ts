@@ -37,7 +37,7 @@ export interface AwaitableObservable
  */
 export const after = (
   ms: number,
-  objOrFn: any,
+  objOrFn?: any,
   label?: any
 ): AwaitableObservable => {
   const valueProducer =

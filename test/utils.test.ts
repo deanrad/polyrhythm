@@ -52,7 +52,7 @@ describe('after', () => {
     });
   });
   describe('Second argument', () => {
-    describe('If a function', () => {
+    describe('when a function', () => {
       it('Schedules its execution later', async () => {
         let counter = 0;
         await after(1, () => counter++).toPromise();
@@ -63,10 +63,16 @@ describe('after', () => {
         expect(result).to.eql(2.71);
       });
     });
-    describe('If not a function', () => {
+    describe('when a value', () => {
       it('Becomes the value of the Observable', async () => {
         const result = await after(1, 2.718).toPromise();
         expect(result).to.eql(2.718);
+      });
+    });
+    describe('when not provided', () => {
+      it('undefined becomes the value of the Observable', async () => {
+        const result = await after(1).toPromise();
+        expect(result).to.eql(undefined);
       });
     });
   });
