@@ -9,7 +9,8 @@ import {
   throwError,
   of,
 } from 'rxjs';
-import { scan, tap } from 'rxjs/operators';
+import { eachValueFrom } from 'rxjs-for-await';
+import { scan, tap, take } from 'rxjs/operators';
 import {
   trigger,
   query,
@@ -95,6 +96,22 @@ describe('Sequences of Methods', () => {
 
       expect(result).to.be.instanceOf(Observable);
     });
+
+    it('can be consumed as an async iterator', async () => {
+      const seen = [];
+      // If we dont force the query to complete, JS will never run
+      // code after the for-await loop
+      const obs = query(['foo', 'bar']).pipe(take(2));
+      const asyncIterator = eachValueFrom(obs);
+
+      after(1, () => trigger('foo')).subscribe();
+      after(2, () => trigger('bar')).subscribe();
+      for await (let x of asyncIterator) {
+        seen.push(x);
+      }
+      expect(seen).to.eql([{ type: 'foo' }, { type: 'bar' }]);
+    });
+
     describe('inside of a #listen', () => {
       it('misses its own event, of course', async function() {
         let counter = 0;
