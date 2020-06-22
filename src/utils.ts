@@ -1,7 +1,7 @@
 import { Subscribable, of, never, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
 export { concat } from 'rxjs';
-export { map, filter, tap, scan } from 'rxjs/operators';
+export { map, tap, scan } from 'rxjs/operators';
 
 /**
  * Returns a random hex string, like a Git SHA. Not guaranteed to
@@ -55,3 +55,26 @@ export const after = (
   // @ts-ignore
   return resultObs;
 };
+
+/** Executes the given function on the microtask queue.
+ * The microtask queue flushes before the macrotask queue.
+ * @returns A Promise for its return value
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide
+ * @see queueMicrotask, Promise.resolve
+ */
+export function microq(fn: Function) {
+  // @ts-ignore
+  return Promise.resolve().then(fn);
+}
+
+/** Executes the given function on the macrotask queue.
+ * The macrotask queue flushes after the microstask queue.
+ * @returns A Promise for its return value
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide
+ * @see setTimeout
+ */
+export function macroq(fn: Function) {
+  return new Promise(resolve => {
+    return setTimeout(() => resolve(fn()), 0);
+  });
+}

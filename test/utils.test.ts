@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { after } from '../src/utils';
+import { after, microq, macroq } from '../src/utils';
 import { concat, timer } from 'rxjs';
 
 describe('after', () => {
@@ -111,5 +111,37 @@ describe('after', () => {
         expect(effects).to.eql([1]);
       });
     });
+  });
+});
+
+describe('microq (microqueue)', () => {
+  it('executes functions on the microtask queue', async () => {
+    const seen: Array<number> = [];
+    microq(() => seen.push(1));
+    microq(() => seen.push(2));
+
+    setTimeout(() => seen.push(3), 0);
+    await Promise.resolve();
+    expect(seen).to.eql([1, 2]);
+  });
+
+  it('promises the function return value', async () => {
+    expect(await microq(() => 2)).to.eq(2);
+  });
+});
+
+describe('macroq (macroqueue)', () => {
+  it('executes functions on the macrotask queue', async () => {
+    const seen: Array<number> = [];
+    microq(() => seen.push(1));
+    setTimeout(() => seen.push(2), 0);
+    const result = macroq(() => seen.push(3));
+
+    await result;
+    expect(seen).to.eql([1, 2, 3]);
+  });
+
+  it('promises the function return value', async () => {
+    expect(await microq(() => 2)).to.eq(2);
   });
 });
