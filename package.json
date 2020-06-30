@@ -1,6 +1,6 @@
 {
   "name": "polyrhythm",
-  "version": "1.0.8",
+  "version": "1.0.11",
   "license": "MIT",
   "author": "Dean Radcliffe",
   "repository": "https://github.com/deanius/polyrhythm",
@@ -18,7 +18,8 @@
     "test:perf": "ts-mocha -r esm -p tsconfig.json test/perf*.ts ",
     "lint": "tsdx lint",
     "doc": "typedoc --theme minimal --out docs/ src/",
-    "doctoc": "doctoc ."
+    "doctoc": "doctoc .",
+    "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
     "react": "^16.12.0"

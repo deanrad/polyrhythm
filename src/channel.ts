@@ -1,5 +1,5 @@
 import { Subject, Observable, Subscription, of, from, concat } from 'rxjs';
-import { filter as _filter, tap, takeUntil } from 'rxjs/operators';
+import { filter as _filter, tap, takeUntil, first } from 'rxjs/operators';
 import { mergeMap, concatMap, exhaustMap, switchMap } from 'rxjs/operators';
 import { toggleMap } from './toggleMap';
 export { toggleMap } from './toggleMap';
@@ -125,9 +125,16 @@ export class Channel {
   }
 
   public query(eventMatcher: EventMatcher): Observable<Event> {
-    return this.channel
+    const resultObs = this.channel
       .asObservable()
       .pipe(_filter(getEventPredicate(eventMatcher)));
+
+    // @ts-ignore
+    resultObs.toPromise = function() {
+      return resultObs.pipe(first()).toPromise();
+    };
+
+    return resultObs;
   }
 
   public filter(eventMatcher: EventMatcher, f: Filter) {

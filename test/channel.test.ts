@@ -10,7 +10,7 @@ import {
   of,
 } from 'rxjs';
 import { eachValueFrom } from 'rxjs-for-await';
-import { scan, tap, take } from 'rxjs/operators';
+import { scan, tap, take, first } from 'rxjs/operators';
 import {
   trigger,
   query,
@@ -95,6 +95,28 @@ describe('Sequences of Methods', () => {
       const result = query(true);
 
       expect(result).to.be.instanceOf(Observable);
+    });
+
+    describe('.toPromise()', () => {
+      it('can be awaited; reply in same callstack', async () => {
+        listen('data/query', () => trigger('data/result', 2.5));
+
+        // its important the query for the result be subscribed via toPromise()
+        // before the trigger occurs, to acomodate the case of the same callstack
+        // Wouldn't work for a sync-triggering listener:
+        // const { payload } = trigger('data/query') && (await query('data/result').toPromise());
+        const resultEvent = query('data/result').toPromise();
+        const { payload } = trigger('data/query') && (await resultEvent);
+        expect(payload).to.equal(2.5);
+      });
+
+      it('can be awaited; reply in later callstack', async () => {
+        listen('auth/login', () => after(1, () => trigger('auth/token', 2.7)));
+
+        const tokenEvent = query('auth/token').toPromise();
+        const { payload } = trigger('auth/login') && (await tokenEvent);
+        expect(payload).to.equal(2.7);
+      });
     });
 
     it('can be consumed as an async iterator', async () => {
