@@ -10,7 +10,7 @@ import {
   of,
 } from 'rxjs';
 import { eachValueFrom } from 'rxjs-for-await';
-import { scan, tap, take, first } from 'rxjs/operators';
+import { scan, tap, take } from 'rxjs/operators';
 import {
   trigger,
   query,
@@ -83,10 +83,19 @@ describe('Sequences of Methods', () => {
   });
 
   describe('#trigger', () => {
-    it('creates and returns the event', () => {
-      const result = trigger('etype', {});
-      const expected = { type: 'etype', payload: {} };
-      expect(result).to.eql(expected);
+    describe('string, payload', () => {
+      it('processes and returns the event', () => {
+        const result = trigger('etype', {});
+        const expected = { type: 'etype', payload: {} };
+        expect(result).to.eql(expected);
+      });
+    });
+    describe('object with type field', () => {
+      it('processes and returns the event', () => {
+        const result = trigger({ type: 'etype', payload: {} });
+        const expected = { type: 'etype', payload: {} };
+        expect(result).to.eql(expected);
+      });
     });
   });
 
@@ -473,6 +482,19 @@ describe('Sequences of Methods', () => {
         { type: 'cause' },
         { type: 'effect', payload: 2.718 },
         { type: 'cause/complete' },
+      ]);
+    });
+
+    it('can trigger events directly via config', async function() {
+      const seen = eventsMatching(true, this);
+      listen('cause', () => of({ type: 'constant/e', value: 2.71828 }), {
+        trigger: true,
+      });
+      trigger('cause');
+
+      expect(seen.value).to.eql([
+        { type: 'cause' },
+        { type: 'constant/e', value: 2.71828 },
       ]);
     });
   });

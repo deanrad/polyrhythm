@@ -1,4 +1,4 @@
-//@ts-nocheck
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { filter, on, trigger, reset } from '../src/channel';
 import { after } from '../src/utils';
 import { range } from 'rxjs';

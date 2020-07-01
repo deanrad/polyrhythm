@@ -10,6 +10,7 @@ export interface Event {
   payload?: any;
   error?: boolean;
   meta?: Object;
+  result?: Promise<any>;
 }
 
 /* A function that can be used as an EventMatcher. */
@@ -78,7 +79,11 @@ export interface ListenerConfig {
   /** The concurrency mode to use. Governs what happens when another handling from this handler is already in progress. */
   mode?: ConcurrencyMode;
   /** A declarative way to map the Observable returned from the listener onto new triggered events */
-  trigger?: TriggerConfig;
+  trigger?: TriggerConfig | true;
+}
+
+export interface TriggerConfig {
+  result: EventMatcher;
 }
 
 export class Channel {
@@ -104,12 +109,20 @@ export class Channel {
     }
   }
 
-  public trigger(type: string, payload?: any): Event {
-    const event = { type };
+  public trigger(
+    type: string | Event,
+    payload?: any,
+    config?: TriggerConfig
+  ): Event {
+    const event = typeof type === 'string' ? { type } : type;
     payload && Object.assign(event, { payload });
 
     for (const [predicate, filter] of this.filters.entries()) {
       predicate(event) && filter(event);
+    }
+
+    if (config?.result) {
+      event.result = this.query(config.result).toPromise();
     }
 
     Object.freeze(event);
@@ -151,7 +164,7 @@ export class Channel {
     config: ListenerConfig = {}
   ) {
     const predicate = getEventPredicate(eventMatcher);
-    const userTriggers = getUserTriggers(config.trigger);
+    const userTriggers = config.trigger || {};
 
     const ender = new Subject();
     const parts = new Subject();
@@ -177,10 +190,13 @@ export class Channel {
     };
 
     const applyNextTrigger = (e: any) => {
+      //@ts-ignore
       userTriggers.next && this.trigger(userTriggers.next, e);
+      userTriggers === true && this.trigger(e);
     };
     const applyCompleteTrigger = () => {
       return new Observable(notify => {
+        //@ts-ignore
         userTriggers.complete && this.trigger(userTriggers.complete);
         notify.complete();
       });
@@ -201,9 +217,8 @@ export class Channel {
           `A listener function notified with an error and will be unsubscribed`
         );
         canceler.unsubscribe();
-        if (userTriggers.error) {
-          this.trigger(userTriggers.error, err);
-        }
+        // @ts-ignore
+        userTriggers.error && this.trigger(userTriggers.error, err);
       },
     };
 
@@ -274,10 +289,6 @@ function getEventPredicate(eventMatcher: EventMatcher) {
     predicate = (event: Event) => eventMatcher === event.type;
   }
   return predicate;
-}
-
-function getUserTriggers(config: TriggerConfig = {}) {
-  return config;
 }
 
 /** Controls what types can be returned from an `on` handler:

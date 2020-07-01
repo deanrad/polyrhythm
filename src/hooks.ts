@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useContext, createContext } from 'react';
 import {
   channel as defaultChannel,
