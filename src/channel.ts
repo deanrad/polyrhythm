@@ -1,4 +1,12 @@
-import { Subject, Observable, Subscription, of, from, concat } from 'rxjs';
+import {
+  Subject,
+  Observable,
+  Subscription,
+  of,
+  from,
+  concat,
+  defer,
+} from 'rxjs';
 import { filter as _filter, tap, takeUntil, first } from 'rxjs/operators';
 import { mergeMap, concatMap, exhaustMap, switchMap } from 'rxjs/operators';
 import { toggleMap } from './toggleMap';
@@ -298,6 +306,10 @@ function getEventPredicate(eventMatcher: EventMatcher) {
 */
 function toObservable(_results: any) {
   if (typeof _results === 'undefined') return of(undefined);
+
+  if (typeof _results === 'function') {
+    return _results.length === 1 ? new Observable(_results) : defer(_results);
+  }
 
   // An Observable is preferred
   if (_results.subscribe) return _results;

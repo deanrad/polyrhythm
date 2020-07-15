@@ -374,41 +374,138 @@ describe('Sequences of Methods', () => {
       expect(callCount).to.equal(0);
     });
 
-    it('does not throw for the triggerer', () => {
-      listen(true, thrower);
-      expect(triggerEvent).not.to.throw();
-      expect(callCount).to.equal(1);
+    describe('Listener Evaluation and Returning', () => {
+      it('listener is evaluated synchronously by default', () => {
+        listen('known-event', () => {
+          callCount++;
+        });
+        trigger('known-event');
+        expect(callCount).to.equal(1);
+      });
+
+      it('listener may return a function to defer and schedule evaluation', async () => {
+        listen(
+          'known-event',
+          () =>
+            function() {
+              callCount++;
+              return delay(10);
+            },
+          { mode: 'serial' }
+        );
+
+        trigger('known-event'); // listener evaluated synchronusly
+        trigger('known-event'); // listener deferred (due to the mode)
+        expect(callCount).to.equal(1);
+      });
+
+      it('listener may return a Promise-returning function to defer evaluation and propogate its resolved value', async function() {
+        const seen = eventsMatching(true, this);
+
+        listen(
+          'known-event',
+          () =>
+            function() {
+              callCount++;
+              return Promise.resolve(1.007);
+            },
+          { mode: 'serial', trigger: { next: 'result' } }
+        );
+
+        trigger('known-event'); // listener evaluated synchronusly
+        trigger('known-event'); // listener deferred (due to the mode)
+        expect(callCount).to.equal(1);
+
+        await after(10);
+        expect(seen.value).to.eql([
+          {
+            type: 'known-event',
+          },
+          {
+            type: 'known-event',
+          },
+          {
+            payload: 1.007,
+            type: 'result',
+          },
+          {
+            payload: 1.007,
+            type: 'result',
+          },
+        ]);
+      });
+
+      it('listener may return an ObservableFactory', async function() {
+        const seen = eventsMatching(true, this);
+
+        listen(
+          'known-event',
+          () =>
+            function(notify) {
+              notify.next(1.2);
+            },
+          { trigger: { next: 'result' } }
+        );
+
+        trigger('known-event'); // listener evaluated synchronusly
+        trigger('known-event'); // listener deferred (due to the mode)
+
+        expect(seen.value).to.eql([
+          {
+            type: 'known-event',
+          },
+          {
+            payload: 1.2,
+            type: 'result',
+          },
+          {
+            type: 'known-event',
+          },
+          {
+            payload: 1.2,
+            type: 'result',
+          },
+        ]);
+      });
     });
 
-    it('is removed if it throws', () => {
-      listen(true, thrower);
-      expect(triggerEvent).not.to.throw();
-      expect(callCount).to.equal(1);
-      expect(triggerEvent).not.to.throw();
-      expect(callCount).to.equal(1);
-    });
+    describe('Error Handling', () => {
+      it('does not throw for the triggerer', () => {
+        listen(true, thrower);
+        expect(triggerEvent).not.to.throw();
+        expect(callCount).to.equal(1);
+      });
 
-    it('is removed if its Observable errors', () => {
-      listen(true, throwsError);
-      expect(triggerEvent).not.to.throw();
-      expect(callCount).to.equal(1);
-      expect(triggerEvent).not.to.throw();
-      expect(callCount).to.equal(1);
-    });
+      it('is removed if it throws', () => {
+        listen(true, thrower);
+        expect(triggerEvent).not.to.throw();
+        expect(callCount).to.equal(1);
+        expect(triggerEvent).not.to.throw();
+        expect(callCount).to.equal(1);
+      });
 
-    it('exposes listener exceptions on channel.errors (logs when NODE_ENV is not test)', function() {
-      let errors = errorsOn(channel, this);
-      listen(true, thrower);
-      triggerEvent();
+      it('is removed if its Observable errors', () => {
+        listen(true, throwsError);
+        expect(triggerEvent).not.to.throw();
+        expect(callCount).to.equal(1);
+        expect(triggerEvent).not.to.throw();
+        expect(callCount).to.equal(1);
+      });
 
-      expect(errors.value.length).to.be.greaterThan(0);
-    });
-    it('exposes listener errors on channel.errors (logs when NODE_ENV is not test)', function() {
-      let errors = errorsOn(channel, this);
-      listen(true, throwsError);
-      triggerEvent();
+      it('exposes listener exceptions on channel.errors (logs when NODE_ENV is not test)', function() {
+        let errors = errorsOn(channel, this);
+        listen(true, thrower);
+        triggerEvent();
 
-      expect(errors.value.length).to.be.greaterThan(0);
+        expect(errors.value.length).to.be.greaterThan(0);
+      });
+      it('exposes listener errors on channel.errors (logs when NODE_ENV is not test)', function() {
+        let errors = errorsOn(channel, this);
+        listen(true, throwsError);
+        triggerEvent();
+
+        expect(errors.value.length).to.be.greaterThan(0);
+      });
     });
 
     it('cannot modify the event', () => {
