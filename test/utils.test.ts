@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { after, microq, macroq } from '../src/utils';
+import { after, microq, macroq, microflush, macroflush } from '../src/utils';
 import { concat, timer } from 'rxjs';
 
 describe('after', () => {
@@ -143,5 +143,60 @@ describe('macroq (macroqueue)', () => {
 
   it('promises the function return value', async () => {
     expect(await microq(() => 2)).to.eq(2);
+  });
+});
+
+describe('microflush/macroflush (a flush of the respective queue)', () => {
+  it('returns a Promise for a timestamp some time in the future', async () => {
+    const now = new Date().getTime();
+    const [microTime, macroTime] = await Promise.all([
+      microflush(),
+      macroflush(),
+    ]);
+
+    expect(microTime).to.be.at.least(now);
+    expect(macroTime).to.be.at.least(microTime);
+  });
+
+  it('resolves a microflush first', () => {
+    return Promise.all([microflush(), macroflush()]).then(
+      ([microTime, macroTime]) => {
+        expect(macroTime).to.be.at.least(microTime);
+      }
+    );
+  });
+
+  describe('microflush', () => {
+    it('ensures existing microtasks are flushed', () => {
+      let counter = 0;
+      microq(() => (counter += 1));
+
+      expect(counter).to.equal(0);
+
+      return microflush().then(() => {
+        expect(counter).to.equal(1);
+      });
+    });
+  });
+
+  describe('macroflush', () => {
+    it('ensures existing macrotasks are flushed', () => {
+      let counter = 0;
+      microq(() => (counter += 0.1));
+      macroq(() => (counter += 1));
+
+      expect(counter).to.equal(0);
+
+      return microflush()
+        .then(() => {
+          expect(counter).to.equal(0.1);
+        })
+        .then(() => {
+          return macroflush();
+        })
+        .then(() => {
+          expect(counter).to.equal(1.1);
+        });
+    });
   });
 });

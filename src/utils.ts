@@ -78,3 +78,17 @@ export function macroq(fn: Function) {
     return setTimeout(() => resolve(fn()), 0);
   });
 }
+
+const getTimestamp = () => new Date().getTime();
+
+/** Returns a Promise for the point in time at which all existing queued microtasks (e.g. Promise.resolve()) have completed. */
+export function microflush(): Promise<Number> {
+  return Promise.resolve().then(() => getTimestamp());
+}
+
+/** Returns a Promise for the point in time at which all existing queued macrotasks (e.g. setTimeout 0) have completed. */
+export function macroflush(): Promise<Number> {
+  return new Promise(resolve => {
+    return setTimeout(() => resolve(getTimestamp()), 0);
+  });
+}
