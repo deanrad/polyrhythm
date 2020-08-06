@@ -7,6 +7,7 @@ import {
   Listener,
   ListenerConfig,
 } from './channel';
+import { Subscription } from 'rxjs';
 
 interface ListenerConfigWithDeps extends ListenerConfig {
   deps?: Array<any>;
@@ -50,14 +51,15 @@ export const useChannel = (deps = []) => {
   };
 };
 
-/** useListener: Allows a component to attach (maybe async) consequences
+/** Allows a component to attach (maybe async) consequences
  * to event patterns: strings, regexes, or function predicates.
  * Handlers return Observables for flexible scheduling/cancelation.
  * Cleans up when the component is unmounted.
- * @argument eventSpec - the string or regex to match the event type
- * @argument handler - the function to be run (receiving {event})
+ * @argument eventSpec - the criteria for the event to listen for
+ * @argument handler - the function to be run upon the event, after all filters
  * @argument options - If the handler closes over React hook variables which
  * are not stable, provide the variables in the `deps` field of this object.
+ * @returns A ref to a subscription, on which you may invoke .current.unsubscribe()
  */
 export const useListener = (
   eventSpec: EventMatcher,
@@ -65,16 +67,23 @@ export const useListener = (
   options: ListenerConfigWithDeps = {}
 ) => {
   const { deps = [], ...config } = options;
+  const subscriptionRef = useRef(new Subscription(() => null));
 
   useEffect(() => {
     const subscription = defaultChannel.on(eventSpec, handler, config);
-
+    subscriptionRef.current = subscription;
     return () => subscription.unsubscribe();
   }, deps);
+
+  return subscriptionRef;
 };
 
-/** useListener: Allows a component to intercept and run synchronous
+/** Allows a component to intercept and run synchronous
  consequences, alter events, or throw errors to cancel the processing
+ * @argument eventSpec - the criteria for the event to listen for
+ * @argument handler - the function to be run synchronously upon the event before all listeners
+ * @argument options - If the handler closes over React hook variables which
+ * are not stable, provide the variables in the `deps` field of this object.
 */
 export const useFilter = (
   eventSpec: EventMatcher,
@@ -82,16 +91,21 @@ export const useFilter = (
   options: ListenerConfigWithDeps = {}
 ) => {
   const { deps = [] } = options;
+  const subscriptionRef = useRef(new Subscription(() => null));
 
   useEffect(() => {
     const subscription = defaultChannel.filter(eventSpec, handler);
-
+    subscriptionRef.current = subscription;
     return () => subscription.unsubscribe();
   }, deps);
+
+  return subscriptionRef;
 };
 
+/** More readable version of useEffect(fn, []). Only on run at mount time. */
 export const useEffectAtMount = (fn: React.EffectCallback) => useEffect(fn, []);
 
+/** Run upon every render after the mount, subject to its deps */
 export const useEffectAfterMount = (
   func: React.EffectCallback,
   deps: React.DependencyList = []
