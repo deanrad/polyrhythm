@@ -19,6 +19,13 @@ Inspired by:
 npm install polyrhythm
 ```
 
+## Examples - What Can You Build?
+
+- The Ping Pong Example (as Soccer): [CodeSandbox](https://codesandbox.io/s/polyrhythm-ping-pong-r6zk5)
+- A Chat UI With Typing Indicator: [CodeSandbox](https://codesandbox.io/s/poly-chat-imw2z)
+- [Seven GUIs](https://eugenkiss.github.io/7guis/tasks) Solutions [1-Counter](https://codesandbox.io/s/7guis-1-counter-17pxb) | [2-Temperature](https://codesandbox.io/s/7guis-2-temperature-bnjbf) | [3-Flight](https://codesandbox.io/s/7guis-3-flight-c6wre) | [4-CRUD](https://codesandbox.io/s/7guis-4-crud-7wjut) | [5-Timer](https://codesandbox.io/s/7guis-5-timer-xgop9)
+- See [All CodeSandbox Demos](https://codesandbox.io/search?refinementList%5Bnpm_dependencies.dependency%5D%5B0%5D=polyrhythm&page=1&configure%5BhitsPerPage%5D=12)
+
 # What It Is
 
 `polyrhythm` is a TypeScript library with optional React bindings for coordinating multiple streams of async using RxJS Observables.
@@ -297,12 +304,3 @@ See [The test suite](/test/channel.test.ts) for details.
 
 **How fast is it?**
 Nearly as fast as RxJS. The [Travis CI build output](https://travis-ci.org/github/deanius/polyrhythm) contains some benchmarks.
-
-**I want more examples!**
-
-More coming soon. Or help by building some :)
-
-- The Ping Pong Example (as Soccer): [CodeSandbox](https://codesandbox.io/s/polyrhythm-ping-pong-r6zk5)
-- A Chat UI With Typing Indicator: [CodeSandbox](https://codesandbox.io/s/poly-chat-imw2z)
-- [Seven GUIs](https://eugenkiss.github.io/7guis/tasks) Solutions [1-Counter](https://codesandbox.io/s/7guis-1-counter-17pxb) | [2-Temperature](https://codesandbox.io/s/7guis-2-temperature-bnjbf) | [3-Flight](https://codesandbox.io/s/7guis-3-flight-c6wre) | [4-CRUD](https://codesandbox.io/s/7guis-4-crud-7wjut) | [5-Timer](https://codesandbox.io/s/7guis-5-timer-xgop9)
-- See [All CodeSandbox Demos](https://codesandbox.io/search?refinementList%5Bnpm_dependencies.dependency%5D%5B0%5D=polyrhythm&page=1&configure%5BhitsPerPage%5D=12)
