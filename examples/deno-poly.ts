@@ -7,7 +7,7 @@ code inside the new runtime DENO.
 import {
   channel,
   after,
-} from 'https://raw.githubusercontent.com/deanius/monolog/master/polyrhythm.1.0.0.development.js';
+} from 'https://s3.amazonaws.com/www.deanius.com/polyrhythm.1.0.0.development.js';
 channel.listen('greet', () => console.log('World'));
 channel.filter(true, () => console.log('Hello'));
 channel.trigger('greet');
