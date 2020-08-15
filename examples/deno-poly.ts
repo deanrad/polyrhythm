@@ -2,7 +2,7 @@
 A basic version showing how to execute evented polyrhythm-style
 code inside the new runtime DENO.
 
-> deno run --allow-net=githubusercontent.com examples/deno-poly.ts
+> deno run --allow-net=s3.amazonaws.com examples/deno-poly.ts
 */
 import {
   channel,
