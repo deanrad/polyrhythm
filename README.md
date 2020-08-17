@@ -53,6 +53,21 @@ First of all, you want to build sophisticated UIs with arbitrarily precise timin
 
 It is test-covered, production-tested, and performance-tested, but friendly enough for side projects. It only adds at most 5Kb to your bundle— so is relatively cheap to try out. There are demos showing its use in Node, React and VanillaJS. And its integrated TypeScript types and TypeDoc comments make it very TypeScript friendly (though I'm sure this could improve!).
 
+
+# Declare Your Timing, Don't Code It
+
+Most of the time, app code around timing is usually baked into the structure of applications, extremely hard to change. Either a function is async — and all its callers are — or it's not. Either you run your Promises in parallel using `Promise.all`, or you `await` them in a loop intentionally to run them serially. Changes to code built this way are non-trivial, with more time required to change than we would like.
+
+`polyrhythm` gives you 5 concurrency modes you can plug in trivially as configuration parameters.
+
+If async effects were sounds, this diagram shows how they might overlap/queue/cancel each other.
+
+<a href="https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png"><img height="400" src="https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png"></a>
+
+> Watch a [Loom Video on these concurrency modes](https://www.loom.com/share/3736003a75bd497eab062c97af0113fc)
+
+This ensures that the structure of the code of your application is decoupled from its exact timing, and lets you write less, more managable code.
+
 # Example: Ping Pong 🏓
 
 Let's incrementally build a simple ping-pong app with it to show how it works. A game of ping-pong clearly has two actors, so will be a great Hello World...
@@ -233,22 +248,6 @@ after(4000, () => player2.unsubscribe()).then(() => console.log('Done!'));
 ```
 
 Calling `unsubscribe()` causes the 2nd Actor/Player to leave the game, effectively ending the match, and completing the ping-pong example!
-
----
-
-# Concurrency Modes - Declarative timing control
-
-To understand `polyrhythm`, one needs a solid command of _timing_.
-
-App code around timing is usually baked into the structure of applications, extremely hard to change. Either a function is async — and all its callers are — or it's not. Either you run your Promises in parallel using `Promise.all`, or you `await` them in a loop intentionally to run them serially. Changes to code built this way are non-trivial ones with more time required to change than we would like.
-
-But `polyrhythm` gives you 5 concurrency modes you can plug in trivially as configuration parameters.
-
-If async effects were sounds, this diagram shows how they might overlap/queue/cancel each other.
-
-<a href="https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png"><img height="400" src="https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png"></a>
-
-> Watch a [Loom Video on these concurrency modes](https://www.loom.com/share/3736003a75bd497eab062c97af0113fc)
 
 ---
 
