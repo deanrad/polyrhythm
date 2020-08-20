@@ -245,6 +245,25 @@ export class Channel {
     return listen(eventMatcher, listener, config);
   }
 
+  public spy(listener: Listener) {
+    let sub: Subscription;
+    let safelyCallListener = (event: Event): any => {
+      try {
+        return listener(event);
+      } catch (err) {
+        this.errors.next(err);
+        this.errors.next(
+          `A listener function threw an exception and will be unsubscribed`
+        );
+        if (sub) {
+          sub.unsubscribe();
+        }
+      }
+    };
+    sub = this.filter(true, safelyCallListener);
+    return sub;
+  }
+
   /** Logs to the console (but not in test mode) */
   public log(...args: any[]) {
     this.logs.next(args);
@@ -274,6 +293,7 @@ export const query = channel.query.bind(channel);
 export const filter = channel.filter.bind(channel);
 export const listen = channel.listen.bind(channel);
 export const on = channel.on.bind(channel);
+export const spy = channel.spy.bind(channel);
 export const log = channel.log.bind(channel);
 export const reset = channel.reset.bind(channel);
 

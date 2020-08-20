@@ -17,6 +17,7 @@ import {
   filter,
   listen,
   on,
+  spy,
   reset,
   channel,
   Channel,
@@ -245,6 +246,22 @@ describe('Sequences of Methods', () => {
       const result = listen(true, () => null);
 
       expect(result).to.be.instanceOf(Subscription);
+    });
+  });
+
+  describe('#spy', () => {
+    it('runs on every event', () => {
+      spy(() => callCount++);
+      trigger('foo');
+      expect(callCount).to.equal(1);
+    });
+    describe('When has an error', () => {
+      it('is unsubscribed', () => {
+        spy(ill);
+        trigger('foo'); // errs here
+        trigger('foo'); // not counted
+        expect(callCount).to.equal(1);
+      });
     });
   });
 
