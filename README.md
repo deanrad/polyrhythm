@@ -24,6 +24,7 @@ npm install polyrhythm
 - The Ping Pong Example (as Soccer): [CodeSandbox](https://codesandbox.io/s/polyrhythm-ping-pong-r6zk5)
 - The [Redux Toolkit]() Examples: ([Simple](https://codesandbox.io/s/poly-redux-toolkit-14g45))
 - A Chat UI With Typing Indicator: [CodeSandbox](https://codesandbox.io/s/poly-chat-imw2z)
+- A requestAnimationFrame-based Game Loop [CodeSandbox](https://codesandbox.io/s/poly-game-loop-xirgs?file=/src/index.js)
 - [Seven GUIs](https://eugenkiss.github.io/7guis/tasks) Solutions [1-Counter](https://codesandbox.io/s/7guis-1-counter-17pxb) | [2-Temperature](https://codesandbox.io/s/7guis-2-temperature-bnjbf) | [3-Flight](https://codesandbox.io/s/7guis-3-flight-c6wre) | [4-CRUD](https://codesandbox.io/s/7guis-4-crud-7wjut) | [5-Timer](https://codesandbox.io/s/7guis-5-timer-xgop9)
 - See [All CodeSandbox Demos](https://codesandbox.io/search?refinementList%5Bnpm_dependencies.dependency%5D%5B0%5D=polyrhythm&page=1&configure%5BhitsPerPage%5D=12)
 
