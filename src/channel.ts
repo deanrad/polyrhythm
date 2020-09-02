@@ -18,9 +18,10 @@ export interface Event {
   payload?: any;
   error?: boolean;
   meta?: Object;
+}
+export interface EventWithResult extends Event {
   result?: Promise<any>;
 }
-
 /* A function that can be used as an EventMatcher. */
 export interface Predicate {
   (item: Event): boolean;
@@ -85,13 +86,19 @@ export interface TriggerConfig {
 
 export interface ListenerConfig {
   /** The concurrency mode to use. Governs what happens when another handling from this handler is already in progress. */
-  mode?: ConcurrencyMode;
+  mode?:
+    | ConcurrencyMode
+    | 'serial'
+    | 'parallel'
+    | 'replace'
+    | 'ignore'
+    | 'toggle';
   /** A declarative way to map the Observable returned from the listener onto new triggered events */
   trigger?: TriggerConfig | true;
 }
 
-export interface TriggerConfig {
-  result: EventMatcher;
+export interface TriggererConfig {
+  result?: EventMatcher;
 }
 
 export class Channel {
@@ -120,9 +127,9 @@ export class Channel {
   public trigger(
     type: string | Event,
     payload?: any,
-    config?: TriggerConfig
-  ): Event {
-    const event = typeof type === 'string' ? { type } : type;
+    config?: TriggererConfig
+  ): EventWithResult {
+    const event: EventWithResult = typeof type === 'string' ? { type } : type;
     payload && Object.assign(event, { payload });
 
     for (const [predicate, filter] of this.filters.entries()) {
@@ -210,7 +217,9 @@ export class Channel {
       });
     };
 
-    const applyOverlap: any = operatorForMode(config.mode);
+    const applyOverlap: any = operatorForMode(
+      ConcurrencyMode[config.mode || 'parallel']
+    );
 
     const listenerEvents = parts.pipe(
       applyOverlap((part: any) => part),

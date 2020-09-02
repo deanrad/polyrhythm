@@ -31,11 +31,9 @@ import { randomId, after } from '../src/utils';
 function eventsMatching(
   eventMatcher: EventMatcher,
   example: any
-): BehaviorSubject<Array<Event>> {
-  const seen = new BehaviorSubject<Array<Event>>([]);
-  const sub = query(eventMatcher)
-    .pipe(scan((a, i) => [...a, i], new Array<Event>()))
-    .subscribe(seen);
+): Array<Event> {
+  const seen = new Array<Event>();
+  const sub = query(eventMatcher).subscribe(e => seen.push(e));
 
   // can clean up with an afterEach
   example.subscription = sub;
@@ -91,11 +89,63 @@ describe('Sequences of Methods', () => {
         expect(result).to.eql(expected);
       });
     });
+
     describe('object with type field', () => {
       it('processes and returns the event', () => {
         const result = trigger({ type: 'etype', payload: {} });
         const expected = { type: 'etype', payload: {} };
         expect(result).to.eql(expected);
+      });
+    });
+
+    describe('with 3rd argument resultSpec', () => {
+      it('adds a promise for the resulting event to the returned event', async () => {
+        const noTime = 0;
+        listen('counter/go', ({ payload }) => after(noTime, { ...payload }), {
+          trigger: { next: 'counter/tick' },
+        });
+
+        const event1 = trigger(
+          'counter/go',
+          { order: 1 },
+          { result: 'counter/tick' }
+        );
+        const event2 = trigger(
+          'counter/go',
+          { order: 2 },
+          { result: 'counter/tick' }
+        );
+
+        // NOTE: In general async listeners will not return the events that
+        // corrspond to their triggering events. They'll see the first matching event
+        const tick1 = await event1.result;
+        const tick2 = await event2.result;
+        expect(tick1.payload).to.eql({ order: 1 });
+        expect(tick2.payload).to.eql({ order: 2 });
+      });
+      it('adds a promise for the next matching event to the returned event', async () => {
+        const delay = 100;
+        listen('counter/go', ({ payload }) => after(delay, { ...payload }), {
+          trigger: { next: 'counter/tick' },
+        });
+
+        const event1 = trigger(
+          'counter/go',
+          { order: 1 },
+          { result: 'counter/tick' }
+        );
+        const event2 = trigger(
+          'counter/go',
+          { order: 2 },
+          { result: 'counter/tick' }
+        );
+
+        // NOTE: In general async listeners will not return the events that
+        // corrspond to their triggering events. They'll see the first matching event
+        const tick1 = await event1.result;
+        const tick2 = await event2.result;
+        expect(tick1.payload).to.eql({ order: 1 });
+        expect(tick2.payload).to.eql({ order: 1 });
       });
     });
   });
@@ -173,6 +223,7 @@ describe('Sequences of Methods', () => {
       describe('An Event Pattern', () => {
         it('what events the listener will run upon');
       });
+
       describe('A Listener  - A function to be run on matching events', () => {
         it('May return nothing or a sync value');
         it('May return an Observable');
@@ -191,7 +242,7 @@ describe('Sequences of Methods', () => {
             triggerEvent();
             triggerEvent();
 
-            const triggered = seen.value.map(e => e.type);
+            const triggered = seen.map(e => e.type);
             expect(triggered).to.eql([
               'anytype',
               'anytype',
@@ -212,7 +263,7 @@ describe('Sequences of Methods', () => {
             triggerEvent();
             triggerEvent();
 
-            const triggered = seen.value.map(e => e.type);
+            const triggered = seen.map(e => e.type);
             expect(triggered).to.eql([
               'anytype',
               'anytype',
@@ -232,11 +283,12 @@ describe('Sequences of Methods', () => {
             triggerEvent();
             triggerEvent();
 
-            const triggered = seen.value.map(e => e.type);
+            const triggered = seen.map(e => e.type);
             expect(triggered).to.eql(['anytype', 'anytype', 'anytype']);
           });
         });
       });
+
       describe('Config - concurrency and re-triggering', () => {
         it('See #listen / #trigger specs');
       });
@@ -255,6 +307,7 @@ describe('Sequences of Methods', () => {
       trigger('foo');
       expect(callCount).to.equal(1);
     });
+
     describe('When has an error', () => {
       it('is unsubscribed', () => {
         spy(ill);
@@ -279,16 +332,14 @@ describe('Sequences of Methods', () => {
 
   describe('#query, #trigger', () => {
     it('finds events triggered after the query', function() {
-      const eventMatcher = true;
-
-      const seen = eventsMatching(eventMatcher, this);
+      const seen = eventsMatching(true, this);
 
       // trigger events
       const event2 = { type: 'e2', payload: randomId() };
       trigger(event.type, event.payload);
       trigger(event2.type, event2.payload);
 
-      expect(seen.value).to.eql([event, event2]);
+      expect(seen).to.eql([event, event2]);
     });
   });
 
@@ -347,6 +398,7 @@ describe('Sequences of Methods', () => {
       const result = trigger('any', 7);
       expect(result.payload).to.equal('The number is 14');
     });
+
     it('aborts later filters if earlier ones throw', () => {
       const healthy = () => {
         callCount++;
@@ -357,6 +409,7 @@ describe('Sequences of Methods', () => {
       expect(triggerEvent).to.throw();
       expect(callCount).to.equal(1);
     });
+
     it('runs no listeners if an exception thrown', () => {
       let listenerCallCount = 0;
       const healthy = () => {
@@ -434,7 +487,7 @@ describe('Sequences of Methods', () => {
         expect(callCount).to.equal(1);
 
         await after(10);
-        expect(seen.value).to.eql([
+        expect(seen).to.eql([
           {
             type: 'known-event',
           },
@@ -458,7 +511,7 @@ describe('Sequences of Methods', () => {
         listen(
           'known-event',
           () =>
-            function(notify) {
+            function(notify: any) {
               notify.next(1.2);
             },
           { trigger: { next: 'result' } }
@@ -467,7 +520,7 @@ describe('Sequences of Methods', () => {
         trigger('known-event'); // listener evaluated synchronusly
         trigger('known-event'); // listener deferred (due to the mode)
 
-        expect(seen.value).to.eql([
+        expect(seen).to.eql([
           {
             type: 'known-event',
           },
@@ -516,6 +569,7 @@ describe('Sequences of Methods', () => {
 
         expect(errors.value.length).to.be.greaterThan(0);
       });
+
       it('exposes listener errors on channel.errors (logs when NODE_ENV is not test)', function() {
         let errors = errorsOn(channel, this);
         listen(true, throwsError);
@@ -539,9 +593,9 @@ describe('Sequences of Methods', () => {
         })
       );
       trigger('cause');
-      expect(seen.value).to.eql([{ type: 'cause' }]);
+      expect(seen).to.eql([{ type: 'cause' }]);
       await delay(2);
-      expect(seen.value).to.eql([{ type: 'cause' }, { type: 'effect' }]);
+      expect(seen).to.eql([{ type: 'cause' }, { type: 'effect' }]);
     });
 
     it('can be used to trigger new events asynchronously from Observables', async function() {
@@ -552,9 +606,9 @@ describe('Sequences of Methods', () => {
         })
       );
       trigger('cause');
-      expect(seen.value).to.eql([{ type: 'cause' }]);
+      expect(seen).to.eql([{ type: 'cause' }]);
       await delay(2);
-      expect(seen.value).to.eql([{ type: 'cause' }, { type: 'effect' }]);
+      expect(seen).to.eql([{ type: 'cause' }, { type: 'effect' }]);
     });
 
     it('can trigger `next` events via config', async function() {
@@ -563,9 +617,9 @@ describe('Sequences of Methods', () => {
         trigger: { next: 'effect' },
       });
       trigger('cause');
-      expect(seen.value).to.eql([{ type: 'cause' }]);
+      expect(seen).to.eql([{ type: 'cause' }]);
       await delay(2);
-      expect(seen.value).to.eql([
+      expect(seen).to.eql([
         { type: 'cause' },
         { type: 'effect', payload: '⚡️' },
       ]);
@@ -576,13 +630,13 @@ describe('Sequences of Methods', () => {
       listen('cause', throwsError, { trigger: { error: 'cause/error' } });
       trigger('cause');
       trigger('cause');
-      expect(seen.value[0]).to.eql({ type: 'cause' });
-      expect(seen.value[1].type).to.eq('cause/error');
-      expect(seen.value[1].payload).to.be.instanceOf(Error);
-      expect(seen.value[2]).to.eql({ type: 'cause' });
+      expect(seen[0]).to.eql({ type: 'cause' });
+      expect(seen[1].type).to.eq('cause/error');
+      expect(seen[1].payload).to.be.instanceOf(Error);
+      expect(seen[2]).to.eql({ type: 'cause' });
 
       // no more errors since the listener was still unsubscribed
-      expect(seen.value).to.have.length(3);
+      expect(seen).to.have.length(3);
     });
 
     it('can trigger `complete` events via config', async function() {
@@ -592,7 +646,7 @@ describe('Sequences of Methods', () => {
       });
       trigger('cause');
 
-      expect(seen.value).to.eql([
+      expect(seen).to.eql([
         { type: 'cause' },
         { type: 'effect', payload: 2.718 },
         { type: 'cause/complete' },
@@ -606,7 +660,7 @@ describe('Sequences of Methods', () => {
       });
       trigger('cause');
 
-      expect(seen.value).to.eql([
+      expect(seen).to.eql([
         { type: 'cause' },
         { type: 'constant/e', value: 2.71828 },
       ]);
@@ -622,7 +676,7 @@ describe('Sequences of Methods', () => {
       });
       triggerEvent();
       triggerEvent();
-      expect(seen.value).to.have.length(2);
+      expect(seen).to.have.length(2);
 
       expect(callCount).to.equal(3);
     });
@@ -634,7 +688,7 @@ describe('Sequences of Methods', () => {
 
       trigger('tick/start');
       await delay(10);
-      expect(seen.value).to.eql([
+      expect(seen).to.eql([
         { type: 'tick/start' },
         { type: 'tick', payload: 1 },
         { type: 'tock', payload: 1 },
@@ -657,7 +711,7 @@ describe('Sequences of Methods', () => {
       trigger('tick/start', 1);
       trigger('tick/start', 7); // ignored
       await delay(10);
-      expect(seen.value).to.eql([
+      expect(seen).to.eql([
         { type: 'tick/start', payload: 1 },
         { type: 'tick/start', payload: 7 },
         { type: 'tick', payload: 1 },
@@ -685,7 +739,7 @@ describe('Sequences of Methods', () => {
       trigger('tick/start', 3);
 
       await delay(10);
-      expect(seen.value).to.eql([
+      expect(seen).to.eql([
         { type: 'tick/start', payload: 1 },
         { type: 'tick', payload: 'sync' },
         // the async part was toggled off
@@ -714,7 +768,7 @@ describe('Sequences of Methods', () => {
       trigger('tick/start', 1);
 
       await delay(20);
-      expect(seen.value).to.eql([
+      expect(seen).to.eql([
         { type: 'tick/start', payload: 1 },
         { type: 'tick', payload: 1 },
         { type: 'tick/start', payload: 7 },
@@ -734,7 +788,7 @@ describe('Sequences of Methods', () => {
       trigger('tick/start', 1);
       trigger('tick/start', 7);
       await delay(20);
-      expect(seen.value).to.eql([
+      expect(seen).to.eql([
         { type: 'tick/start', payload: 1 },
         { type: 'tick/start', payload: 7 },
         { type: 'tick', payload: 1 },
@@ -756,7 +810,7 @@ describe('Sequences of Methods', () => {
       trigger('tick/start', 1);
       trigger('tick/start', 7);
       await delay(20);
-      expect(seen.value).to.eql([
+      expect(seen).to.eql([
         { type: 'tick/start', payload: 1 },
         { type: 'tick/start', payload: 7 },
         { type: 'tick', payload: 1 },
@@ -778,10 +832,10 @@ describe('Sequences of Methods', () => {
         })
       );
       trigger('cause');
-      expect(seen.value).to.eql([{ type: 'cause' }]);
+      expect(seen).to.eql([{ type: 'cause' }]);
       sub.unsubscribe();
       await delay(2);
-      expect(seen.value).to.eql([{ type: 'cause' }]);
+      expect(seen).to.eql([{ type: 'cause' }]);
     });
   });
 

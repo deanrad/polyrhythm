@@ -1,32 +1,32 @@
-[![npm version](https://badge.fury.io/js/`polyrhythm`.svg)](https://badge.fury.io/js/`polyrhythm`)[![<6 Kb](https://img.shields.io/badge/gzip%20size-%3C6%20kB-brightgreen.svg)](https://www.npmjs.com/package/`polyrhythm`)
-[![Travis](https://img.shields.io/travis/deanius/`polyrhythm`.svg)](https://travis-ci.org/deanius/`polyrhythm`)
-[![Maintainability](https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/maintainability)](https://codeclimate.com/github/deanius/`polyrhythm`/maintainability)
+[![npm version](https://badge.fury.io/js/`polyrhythm`.svg)](https://badge.fury.io/js/polyrhythm)[![<6 Kb](https://img.shields.io/badge/gzip%20size-%3C6%20kB-brightgreen.svg)](https://www.npmjs.com/package/polyrhythm)
+[![Travis](https://img.shields.io/travis/deanius/polyrhythm.svg)](https://travis-ci.org/deanius/polyrhythm)
+[![Maintainability](https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/maintainability)](https://codeclimate.com/github/deanius/polyrhythm/maintainability)
 [![TypeScript](https://camo.githubusercontent.com/832d01092b0e822178475741271b049a2e27df13/68747470733a2f2f62616467656e2e6e65742f62616467652f2d2f547970655363726970742f626c75653f69636f6e3d74797065736372697074266c6162656c)](https://github.com/ellerbrock/typescript-badges/)<a href="#badge"><img alt="code style: prettier" src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square"></a>[![twitter link](https://img.shields.io/badge/twitter-@deaniusdev-55acee.svg)](https://twitter.com/deaniusdev)
 
-# `polyrhythm` 🎵🎶
+# polyrhythm 🎵🎶
 
-`polyrhythm` is a Domain Specific Language for building UIs with JavaScript.
+`polyrhythm` is a way to avoid async race conditions, particularly those that arise when building UIs, in JavaScript. It can replace Redux middleware like Redux Saga, and is a framework-free library that supercharges your timing and resource-management. And it's under 4Kb.
 
-It's a synthesis of ideas from:
+Its API is a synthesis of ideas from:
 
 - 💙JQuery, particularly [#on](https://api.jquery.com/on/) and [#trigger](https://api.jquery.com/trigger/).
 - 💜RxJS. Older than Promises, nearly as old as JQuery.
 - 💜Redux-Observable, Redux Saga, Redux Thunk.
 
-Everyone needs async consequences of events, but `polyrhythm` is a framework-free that supercharges your timing and resource management capabilities in only 3Kb.
+For use in a React context, [polyrhythm-react](https://github.com/deanius/polyrhythm) exports all in this library, plus React hooks for interfacing with it.
 
 ## Installation
 
 ```
-npm install `polyrhythm`
+npm install polyrhythm
 ```
 
 ## Examples - What Can You Build With It?
 
 - The [Ping Pong Example](https://codesandbox.io/s/`polyrhythm`-ping-pong-r6zk5) (as Soccer)
 - The [Chat UI Example](https://codesandbox.io/s/poly-chat-imw2z) with TypingIndicator
-- The Redux [Todos Example](https://codesandbox.io/s/polyrhythm-redux-todos-ltigo)
-- The Redux-Toolkit [Counter Example](https://codesandbox.io/s/poly-redux-toolkit-14g45)
+- The [Redux Counter Example](https://codesandbox.io/s/poly-redux-counter-solved-m5cm0)
+- The [Redux Todos Example](https://codesandbox.io/s/polyrhythm-redux-todos-ltigo)
 - A `requestAnimationFrame`-based [Game Loop](https://codesandbox.io/s/poly-game-loop-xirgs?file=/src/index.js)
 - Seven GUIs Solutions [1-Counter](https://codesandbox.io/s/7guis-1-counter-17pxb) | [2-Temperature](https://codesandbox.io/s/7guis-2-temperature-bnjbf) | [3-Flight](https://codesandbox.io/s/7guis-3-flight-c6wre) | [4-CRUD](https://codesandbox.io/s/7guis-4-crud-7wjut) | [5-Timer](https://codesandbox.io/s/7guis-5-timer-xgop9) _(more info at [7 GUIs](https://eugenkiss.github.io/7guis/tasks))_
 - See [All CodeSandbox Demos](https://codesandbox.io/search?refinementList%5Bnpm_dependencies.dependency%5D%5B0%5D=`polyrhythm`&page=1&configure%5BhitsPerPage%5D=12)
@@ -136,7 +136,7 @@ _IMPORTANT: The app is protected from each **Listener** as though by a fuse. `po
 
 Most of the time, app code around timing is usually baked into the syntax and shape of applications, and is so extremely hard to change. Either a function is an `async function(){}` — and all its callers are — or it's not. The same goes for generators, marked with `function*() {}`.
 
-Primitives like async functions and generators are lesser known, and tricky to get right- with more time required to read and change then we would like. Wouldn't it be great if we could abstract that timing information about the function and simply apply it as metadata? `polyrhythm` gives you 5 concurrency modes you can plug in trivially as configuration parameters.
+Primitives like async functions and generators are lesser known, and tricky to get right- with more time required to read and change then we would like. Wouldn't it be great if we could abstract that timing information about the function and simply apply it as metadata? `polyrhythm` gives you 5 concurrency modes you can plug in trivially as configuration parameters. See it's effect on the "Increment Async" behavior in the [Redux Counter Example](https://codesandbox.io/s/poly-redux-counter-solved-m5cm0).
 
 If async effects were sounds, this diagram shows how they might overlap/queue/cancel each other.
 
