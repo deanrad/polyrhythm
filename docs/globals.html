@@ -2727,33 +2727,33 @@ img {
 <div class="container container-main">
 	<div class="content-wrap">
 		<div class="tsd-panel tsd-typography">
-			<p><a href="https://badge.fury.io/js/%60polyrhythm%60"><img src="https://badge.fury.io/js/%60polyrhythm%60.svg" alt="npm version"></a><a href="https://www.npmjs.com/package/%60polyrhythm%60"><img src="https://img.shields.io/badge/gzip%20size-%3C6%20kB-brightgreen.svg" alt="&lt;6 Kb"></a>
-				<a href="https://travis-ci.org/deanius/%60polyrhythm%60"><img src="https://img.shields.io/travis/deanius/%60polyrhythm%60.svg" alt="Travis"></a>
-				<a href="https://codeclimate.com/github/deanius/%60polyrhythm%60/maintainability"><img src="https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/maintainability" alt="Maintainability"></a>
+			<p><a href="https://badge.fury.io/js/polyrhythm"><img src="https://badge.fury.io/js/%60polyrhythm%60.svg" alt="npm version"></a><a href="https://www.npmjs.com/package/polyrhythm"><img src="https://img.shields.io/badge/gzip%20size-%3C6%20kB-brightgreen.svg" alt="&lt;6 Kb"></a>
+				<a href="https://travis-ci.org/deanius/polyrhythm"><img src="https://img.shields.io/travis/deanius/polyrhythm.svg" alt="Travis"></a>
+				<a href="https://codeclimate.com/github/deanius/polyrhythm/maintainability"><img src="https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/maintainability" alt="Maintainability"></a>
 			<a href="https://github.com/ellerbrock/typescript-badges/"><img src="https://camo.githubusercontent.com/832d01092b0e822178475741271b049a2e27df13/68747470733a2f2f62616467656e2e6e65742f62616467652f2d2f547970655363726970742f626c75653f69636f6e3d74797065736372697074266c6162656c" alt="TypeScript"></a><a href="#badge"><img alt="code style: prettier" src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square"></a><a href="https://twitter.com/deaniusdev"><img src="https://img.shields.io/badge/twitter-@deaniusdev-55acee.svg" alt="twitter link"></a></p>
 			<a href="#polyrhythm-🎵🎶" id="polyrhythm-🎵🎶" style="color: inherit; text-decoration: none;">
-				<h1><code>polyrhythm</code> 🎵🎶</h1>
+				<h1>polyrhythm 🎵🎶</h1>
 			</a>
-			<p><code>polyrhythm</code> is a Domain Specific Language for building UIs with JavaScript.</p>
-			<p>It&#39;s a synthesis of ideas from:</p>
+			<p><code>polyrhythm</code> is a way to avoid async race conditions, particularly those that arise when building UIs, in JavaScript. It can replace Redux middleware like Redux Saga, and is a framework-free library that supercharges your timing and resource-management. And it&#39;s under 4Kb.</p>
+			<p>Its API is a synthesis of ideas from:</p>
 			<ul>
 				<li>💙JQuery, particularly <a href="https://api.jquery.com/on/">#on</a> and <a href="https://api.jquery.com/trigger/">#trigger</a>.</li>
 				<li>💜RxJS. Older than Promises, nearly as old as JQuery.</li>
 				<li>💜Redux-Observable, Redux Saga, Redux Thunk.</li>
 			</ul>
-			<p>Everyone needs async consequences of events, but <code>polyrhythm</code> is a framework-free that supercharges your timing and resource management capabilities in only 3Kb.</p>
+			<p>For use in a React context, <a href="https://github.com/deanius/polyrhythm">polyrhythm-react</a> exports all in this library, plus React hooks for interfacing with it.</p>
 			<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
 				<h2>Installation</h2>
 			</a>
-			<pre><code>npm <span class="hljs-keyword">install</span> <span class="hljs-string">`polyrhythm`</span></code></pre>
+			<pre><code>npm <span class="hljs-keyword">install</span> polyrhythm</code></pre>
 			<a href="#examples---what-can-you-build-with-it" id="examples---what-can-you-build-with-it" style="color: inherit; text-decoration: none;">
 				<h2>Examples - What Can You Build With It?</h2>
 			</a>
 			<ul>
 				<li>The <a href="https://codesandbox.io/s/%60polyrhythm%60-ping-pong-r6zk5">Ping Pong Example</a> (as Soccer)</li>
 				<li>The <a href="https://codesandbox.io/s/poly-chat-imw2z">Chat UI Example</a> with TypingIndicator</li>
-				<li>The Redux <a href="https://codesandbox.io/s/polyrhythm-redux-todos-ltigo">Todos Example</a></li>
-				<li>The Redux-Toolkit <a href="https://codesandbox.io/s/poly-redux-toolkit-14g45">Counter Example</a></li>
+				<li>The <a href="https://codesandbox.io/s/poly-redux-counter-solved-m5cm0">Redux Counter Example</a></li>
+				<li>The <a href="https://codesandbox.io/s/polyrhythm-redux-todos-ltigo">Redux Todos Example</a></li>
 				<li>A <code>requestAnimationFrame</code>-based <a href="https://codesandbox.io/s/poly-game-loop-xirgs?file=/src/index.js">Game Loop</a></li>
 				<li>Seven GUIs Solutions <a href="https://codesandbox.io/s/7guis-1-counter-17pxb">1-Counter</a> | <a href="https://codesandbox.io/s/7guis-2-temperature-bnjbf">2-Temperature</a> | <a href="https://codesandbox.io/s/7guis-3-flight-c6wre">3-Flight</a> | <a href="https://codesandbox.io/s/7guis-4-crud-7wjut">4-CRUD</a> | <a href="https://codesandbox.io/s/7guis-5-timer-xgop9">5-Timer</a> <em>(more info at <a href="https://eugenkiss.github.io/7guis/tasks">7 GUIs</a>)</em></li>
 				<li>See <a href="https://codesandbox.io/search?refinementList%5Bnpm_dependencies.dependency%5D%5B0%5D=%60polyrhythm%60&amp;page=1&amp;configure%5BhitsPerPage%5D=12">All CodeSandbox Demos</a></li>
@@ -2843,7 +2843,7 @@ img {
 				<h1>Declare Your Timing, Don&#39;t Code It</h1>
 			</a>
 			<p>Most of the time, app code around timing is usually baked into the syntax and shape of applications, and is so extremely hard to change. Either a function is an <code>async function(){}</code> — and all its callers are — or it&#39;s not. The same goes for generators, marked with <code>function*() {}</code>.</p>
-			<p>Primitives like async functions and generators are lesser known, and tricky to get right- with more time required to read and change then we would like. Wouldn&#39;t it be great if we could abstract that timing information about the function and simply apply it as metadata? <code>polyrhythm</code> gives you 5 concurrency modes you can plug in trivially as configuration parameters.</p>
+			<p>Primitives like async functions and generators are lesser known, and tricky to get right- with more time required to read and change then we would like. Wouldn&#39;t it be great if we could abstract that timing information about the function and simply apply it as metadata? <code>polyrhythm</code> gives you 5 concurrency modes you can plug in trivially as configuration parameters. See it&#39;s effect on the &quot;Increment Async&quot; behavior in the <a href="https://codesandbox.io/s/poly-redux-counter-solved-m5cm0">Redux Counter Example</a>.</p>
 			<p>If async effects were sounds, this diagram shows how they might overlap/queue/cancel each other.</p>
 			<p><a href="https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png"><img height="400" src="https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png"></a></p>
 			<blockquote>
@@ -2879,14 +2879,6 @@ The flow of events over time remains plainly visible. We listen and respond to *
 Also see [storybook-animate](https://github.com/deanius/storybook-animate) for an extension of this idea applied to StorybookJS.
 
 -->
-			<a href="#react-support" id="react-support" style="color: inherit; text-decoration: none;">
-				<h1>React Support</h1>
-			</a>
-			<p><code>useFilter</code> and <code>useListener</code> are React wrappers over the <code>polyrhythm</code> exported functions <code>filter</code> and <code>listen</code>. (Listen is aliased <code>on</code>, in honor of JQuery). What these wrapper hooks do is limit the lifetime of the event listener, and its side-effects, to the lifetime of the hosting component. These hooks will subscribe and unsubscribe to the channel as their component is (un)-mounted, or explicit <code>deps</code>, may be passed, so as not to close over stale values.</p>
-			<a href="#multiple-channel-support" id="multiple-channel-support" style="color: inherit; text-decoration: none;">
-				<h2>Multiple Channel support</h2>
-			</a>
-			<p><code>useChannel</code> is available for more advanced scenarios where a different channel is desired, such as for keeping one sub-tree&#39;s events separated from the default, for privacy, simulating a server in-browser (!), or other reasons. (This feature is in progress/experimental).</p>
 			<a href="#faq" id="faq" style="color: inherit; text-decoration: none;">
 				<h1>FAQ</h1>
 			</a>
@@ -3068,7 +3060,6 @@ after(<span class="hljs-number">4000</span>, () =&gt; player2.unsubscribe()).the
 						<h3>Modules</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-module"><a href="modules/_channel_.html" class="tsd-kind-icon">&quot;channel&quot;</a></li>
-							<li class="tsd-kind-module"><a href="modules/_hooks_.html" class="tsd-kind-icon">&quot;hooks&quot;</a></li>
 							<li class="tsd-kind-module"><a href="modules/_index_.html" class="tsd-kind-icon">&quot;index&quot;</a></li>
 							<li class="tsd-kind-module"><a href="modules/_togglemap_.html" class="tsd-kind-icon">&quot;toggle<wbr>Map&quot;</a></li>
 							<li class="tsd-kind-module"><a href="modules/_utils_.html" class="tsd-kind-icon">&quot;utils&quot;</a></li>

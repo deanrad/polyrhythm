@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>&quot;hooks&quot; | polyrhythm</title>
+	<title>EventWithResult | polyrhythm</title>
 	<meta name="description" content="Documentation for polyrhythm">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -2722,333 +2722,190 @@ img {
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class=" tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported">
-			<a href="../interfaces/_hooks_.listenerconfigwithdeps.html" class="tsd-kind-icon">Listener<wbr>Config<wbr>With<wbr>Deps</a>
+		<li class=" tsd-kind-reference tsd-parent-kind-module">
+			<a href="../modules/_channel_.html#subscription" class="tsd-kind-icon">Subscription</a>
+		</li>
+		<li class=" tsd-kind-reference tsd-parent-kind-module">
+			<a href="../modules/_channel_.html#togglemap" class="tsd-kind-icon">toggle<wbr>Map</a>
+		</li>
+		<li class=" tsd-kind-enum tsd-parent-kind-module">
+			<a href="../enums/_channel_.concurrencymode.html" class="tsd-kind-icon">Concurrency<wbr>Mode</a>
+		</li>
+		<li class=" tsd-kind-class tsd-parent-kind-module">
+			<a href="../classes/_channel_.channel.html" class="tsd-kind-icon">Channel</a>
+		</li>
+		<li class=" tsd-kind-interface tsd-parent-kind-module">
+			<a href="_channel_.event.html" class="tsd-kind-icon">Event</a>
+		</li>
+		<li class="current tsd-kind-interface tsd-parent-kind-module">
+			<a href="_channel_.eventwithresult.html" class="tsd-kind-icon">Event<wbr>With<wbr>Result</a>
+			<ul>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+					<a href="_channel_.eventwithresult.html#error" class="tsd-kind-icon">error</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+					<a href="_channel_.eventwithresult.html#meta" class="tsd-kind-icon">meta</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+					<a href="_channel_.eventwithresult.html#payload" class="tsd-kind-icon">payload</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface">
+					<a href="_channel_.eventwithresult.html#result" class="tsd-kind-icon">result</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+					<a href="_channel_.eventwithresult.html#type" class="tsd-kind-icon">type</a>
+				</li>
+			</ul>
+		</li>
+		<li class=" tsd-kind-interface tsd-parent-kind-module">
+			<a href="_channel_.filter.html" class="tsd-kind-icon">Filter</a>
+		</li>
+		<li class=" tsd-kind-interface tsd-parent-kind-module">
+			<a href="_channel_.listener.html" class="tsd-kind-icon">Listener</a>
+		</li>
+		<li class=" tsd-kind-interface tsd-parent-kind-module">
+			<a href="_channel_.listenerconfig.html" class="tsd-kind-icon">Listener<wbr>Config</a>
+		</li>
+		<li class=" tsd-kind-interface tsd-parent-kind-module">
+			<a href="_channel_.predicate.html" class="tsd-kind-icon">Predicate</a>
+		</li>
+		<li class=" tsd-kind-interface tsd-parent-kind-module">
+			<a href="_channel_.triggerconfig.html" class="tsd-kind-icon">Trigger<wbr>Config</a>
+		</li>
+		<li class=" tsd-kind-interface tsd-parent-kind-module">
+			<a href="_channel_.triggererconfig.html" class="tsd-kind-icon">Triggerer<wbr>Config</a>
+		</li>
+		<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+			<a href="../modules/_channel_.html#eventmatcher" class="tsd-kind-icon">Event<wbr>Matcher</a>
 		</li>
 		<li class=" tsd-kind-variable tsd-parent-kind-module">
-			<a href="_hooks_.html#channelcontext" class="tsd-kind-icon">Channel<wbr>Context</a>
+			<a href="../modules/_channel_.html#channel-1" class="tsd-kind-icon">channel</a>
 		</li>
-		<li class=" tsd-kind-function tsd-parent-kind-module">
-			<a href="_hooks_.html#usechannel" class="tsd-kind-icon">use<wbr>Channel</a>
+		<li class=" tsd-kind-variable tsd-parent-kind-module">
+			<a href="../modules/_channel_.html#filter-1" class="tsd-kind-icon">filter</a>
 		</li>
-		<li class=" tsd-kind-function tsd-parent-kind-module">
-			<a href="_hooks_.html#useeffectaftermount" class="tsd-kind-icon">use<wbr>Effect<wbr>After<wbr>Mount</a>
+		<li class=" tsd-kind-variable tsd-parent-kind-module">
+			<a href="../modules/_channel_.html#listen" class="tsd-kind-icon">listen</a>
 		</li>
-		<li class=" tsd-kind-function tsd-parent-kind-module">
-			<a href="_hooks_.html#useeffectatmount" class="tsd-kind-icon">use<wbr>Effect<wbr>AtMount</a>
+		<li class=" tsd-kind-variable tsd-parent-kind-module">
+			<a href="../modules/_channel_.html#log" class="tsd-kind-icon">log</a>
 		</li>
-		<li class=" tsd-kind-function tsd-parent-kind-module">
-			<a href="_hooks_.html#usefilter" class="tsd-kind-icon">use<wbr>Filter</a>
+		<li class=" tsd-kind-variable tsd-parent-kind-module">
+			<a href="../modules/_channel_.html#on" class="tsd-kind-icon">on</a>
 		</li>
-		<li class=" tsd-kind-function tsd-parent-kind-module">
-			<a href="_hooks_.html#uselistener" class="tsd-kind-icon">use<wbr>Listener</a>
+		<li class=" tsd-kind-variable tsd-parent-kind-module">
+			<a href="../modules/_channel_.html#query" class="tsd-kind-icon">query</a>
+		</li>
+		<li class=" tsd-kind-variable tsd-parent-kind-module">
+			<a href="../modules/_channel_.html#reset" class="tsd-kind-icon">reset</a>
+		</li>
+		<li class=" tsd-kind-variable tsd-parent-kind-module">
+			<a href="../modules/_channel_.html#spy" class="tsd-kind-icon">spy</a>
+		</li>
+		<li class=" tsd-kind-variable tsd-parent-kind-module">
+			<a href="../modules/_channel_.html#trigger" class="tsd-kind-icon">trigger</a>
+		</li>
+		<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
+			<a href="../modules/_channel_.html#geteventpredicate" class="tsd-kind-icon">get<wbr>Event<wbr>Predicate</a>
+		</li>
+		<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
+			<a href="../modules/_channel_.html#istestmode" class="tsd-kind-icon">is<wbr>Test<wbr>Mode</a>
+		</li>
+		<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
+			<a href="../modules/_channel_.html#operatorformode" class="tsd-kind-icon">operator<wbr>For<wbr>Mode</a>
+		</li>
+		<li class=" tsd-kind-function tsd-parent-kind-module tsd-is-not-exported">
+			<a href="../modules/_channel_.html#toobservable" class="tsd-kind-icon">to<wbr>Observable</a>
 		</li>
 	</ul>
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
+		<section class="tsd-panel tsd-hierarchy">
+			<h3>Hierarchy</h3>
+			<ul class="tsd-hierarchy">
+				<li>
+					<a href="_channel_.event.html" class="tsd-signature-type">Event</a>
+					<ul class="tsd-hierarchy">
+						<li>
+							<span class="target">EventWithResult</span>
+						</li>
+					</ul>
+				</li>
+			</ul>
+		</section>
 		<section class="tsd-panel-group tsd-index-group">
 			<h2>Index</h2>
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
-					<section class="tsd-index-section tsd-is-not-exported">
-						<h3>Interfaces</h3>
-						<ul class="tsd-index-list">
-							<li class="tsd-kind-interface tsd-parent-kind-module tsd-is-not-exported"><a href="../interfaces/_hooks_.listenerconfigwithdeps.html" class="tsd-kind-icon">Listener<wbr>Config<wbr>With<wbr>Deps</a></li>
-						</ul>
-					</section>
 					<section class="tsd-index-section ">
-						<h3>Variables</h3>
+						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-variable tsd-parent-kind-module"><a href="_hooks_.html#channelcontext" class="tsd-kind-icon">Channel<wbr>Context</a></li>
-						</ul>
-					</section>
-					<section class="tsd-index-section ">
-						<h3>Functions</h3>
-						<ul class="tsd-index-list">
-							<li class="tsd-kind-function tsd-parent-kind-module"><a href="_hooks_.html#usechannel" class="tsd-kind-icon">use<wbr>Channel</a></li>
-							<li class="tsd-kind-function tsd-parent-kind-module"><a href="_hooks_.html#useeffectaftermount" class="tsd-kind-icon">use<wbr>Effect<wbr>After<wbr>Mount</a></li>
-							<li class="tsd-kind-function tsd-parent-kind-module"><a href="_hooks_.html#useeffectatmount" class="tsd-kind-icon">use<wbr>Effect<wbr>AtMount</a></li>
-							<li class="tsd-kind-function tsd-parent-kind-module"><a href="_hooks_.html#usefilter" class="tsd-kind-icon">use<wbr>Filter</a></li>
-							<li class="tsd-kind-function tsd-parent-kind-module"><a href="_hooks_.html#uselistener" class="tsd-kind-icon">use<wbr>Listener</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="_channel_.eventwithresult.html#error" class="tsd-kind-icon">error</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="_channel_.eventwithresult.html#meta" class="tsd-kind-icon">meta</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="_channel_.eventwithresult.html#payload" class="tsd-kind-icon">payload</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_channel_.eventwithresult.html#result" class="tsd-kind-icon">result</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="_channel_.eventwithresult.html#type" class="tsd-kind-icon">type</a></li>
 						</ul>
 					</section>
 				</div>
 			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
-			<h2>Variables</h2>
-			<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
-				<a name="channelcontext" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Channel<wbr>Context</h3>
-				<div class="tsd-signature tsd-kind-icon">Channel<wbr>Context<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Context</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/_channel_.channel.html" class="tsd-signature-type">Channel</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = createContext(defaultChannel)</span></div>
+			<h2>Properties</h2>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+				<a name="error" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> error</h3>
+				<div class="tsd-signature tsd-kind-icon">error<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 				<aside class="tsd-sources">
+					<p>Inherited from <a href="_channel_.event.html">Event</a>.<a href="_channel_.event.html#error">error</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/hooks.ts#L27">src/hooks.ts:27</a></li>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L19">src/channel.ts:19</a></li>
 					</ul>
 				</aside>
 			</section>
-		</section>
-		<section class="tsd-panel-group tsd-member-group ">
-			<h2>Functions</h2>
-			<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-				<a name="usechannel" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> use<wbr>Channel</h3>
-				<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-					<li class="tsd-signature tsd-kind-icon">use<wbr>Channel<span class="tsd-signature-symbol">(</span>deps<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>trigger<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">; </span>useFilter<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">; </span>useListener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> }</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/hooks.ts#L29">src/hooks.ts:29</a></li>
-							</ul>
-						</aside>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> deps: <span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span>trigger<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">; </span>useFilter<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">; </span>useListener<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> }</span></h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter">
-								<h5>trigger<span class="tsd-signature-symbol">: </span>function</h5>
-								<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-type-literal">
-									<li class="tsd-signature tsd-kind-icon">trigger<span class="tsd-signature-symbol">(</span>type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, payload<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-								</ul>
-								<ul class="tsd-descriptions">
-									<li class="tsd-description">
-										<aside class="tsd-sources">
-											<ul>
-												<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/hooks.ts#L32">src/hooks.ts:32</a></li>
-											</ul>
-										</aside>
-										<h4 class="tsd-parameters-title">Parameters</h4>
-										<ul class="tsd-parameters">
-											<li>
-												<h5>type: <span class="tsd-signature-type">string</span></h5>
-											</li>
-											<li>
-												<h5><span class="tsd-flag ts-flagOptional">Optional</span> payload: <span class="tsd-signature-type">any</span></h5>
-											</li>
-										</ul>
-										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-									</li>
-								</ul>
-							</li>
-							<li class="tsd-parameter">
-								<h5>use<wbr>Filter<span class="tsd-signature-symbol">: </span>function</h5>
-								<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-type-literal">
-									<li class="tsd-signature tsd-kind-icon">use<wbr>Filter<span class="tsd-signature-symbol">(</span>eventSpec<span class="tsd-signature-symbol">: </span><a href="_channel_.html#eventmatcher" class="tsd-signature-type">EventMatcher</a>, filter<span class="tsd-signature-symbol">: </span><a href="../interfaces/_channel_.filter.html" class="tsd-signature-type">Filter</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-								</ul>
-								<ul class="tsd-descriptions">
-									<li class="tsd-description">
-										<aside class="tsd-sources">
-											<ul>
-												<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/hooks.ts#L45">src/hooks.ts:45</a></li>
-											</ul>
-										</aside>
-										<h4 class="tsd-parameters-title">Parameters</h4>
-										<ul class="tsd-parameters">
-											<li>
-												<h5>eventSpec: <a href="_channel_.html#eventmatcher" class="tsd-signature-type">EventMatcher</a></h5>
-											</li>
-											<li>
-												<h5>filter: <a href="../interfaces/_channel_.filter.html" class="tsd-signature-type">Filter</a></h5>
-											</li>
-										</ul>
-										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-									</li>
-								</ul>
-							</li>
-							<li class="tsd-parameter">
-								<h5>use<wbr>Listener<span class="tsd-signature-symbol">: </span>function</h5>
-								<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-type-literal">
-									<li class="tsd-signature tsd-kind-icon">use<wbr>Listener<span class="tsd-signature-symbol">(</span>eventSpec<span class="tsd-signature-symbol">: </span><a href="_channel_.html#eventmatcher" class="tsd-signature-type">EventMatcher</a>, handler<span class="tsd-signature-symbol">: </span><a href="../interfaces/_channel_.listener.html" class="tsd-signature-type">Listener</a>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/_channel_.listenerconfig.html" class="tsd-signature-type">ListenerConfig</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-								</ul>
-								<ul class="tsd-descriptions">
-									<li class="tsd-description">
-										<aside class="tsd-sources">
-											<ul>
-												<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/hooks.ts#L35">src/hooks.ts:35</a></li>
-											</ul>
-										</aside>
-										<h4 class="tsd-parameters-title">Parameters</h4>
-										<ul class="tsd-parameters">
-											<li>
-												<h5>eventSpec: <a href="_channel_.html#eventmatcher" class="tsd-signature-type">EventMatcher</a></h5>
-											</li>
-											<li>
-												<h5>handler: <a href="../interfaces/_channel_.listener.html" class="tsd-signature-type">Listener</a></h5>
-											</li>
-											<li>
-												<h5><span class="tsd-flag ts-flagDefault value">Default value</span> options: <a href="../interfaces/_channel_.listenerconfig.html" class="tsd-signature-type">ListenerConfig</a><span class="tsd-signature-symbol"> = {}</span></h5>
-											</li>
-										</ul>
-										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-									</li>
-								</ul>
-							</li>
-						</ul>
-					</li>
-				</ul>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+				<a name="meta" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> meta</h3>
+				<div class="tsd-signature tsd-kind-icon">meta<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Object</span></div>
+				<aside class="tsd-sources">
+					<p>Inherited from <a href="_channel_.event.html">Event</a>.<a href="_channel_.event.html#meta">meta</a></p>
+					<ul>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L20">src/channel.ts:20</a></li>
+					</ul>
+				</aside>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-				<a name="useeffectaftermount" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> use<wbr>Effect<wbr>After<wbr>Mount</h3>
-				<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-					<li class="tsd-signature tsd-kind-icon">use<wbr>Effect<wbr>After<wbr>Mount<span class="tsd-signature-symbol">(</span>func<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">React.EffectCallback</span>, deps<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">React.DependencyList</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/hooks.ts#L109">src/hooks.ts:109</a></li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Run upon every render after the mount, subject to its deps</p>
-							</div>
-						</div>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>func: <span class="tsd-signature-type">React.EffectCallback</span></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> deps: <span class="tsd-signature-type">React.DependencyList</span><span class="tsd-signature-symbol"> = []</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-					</li>
-				</ul>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+				<a name="payload" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> payload</h3>
+				<div class="tsd-signature tsd-kind-icon">payload<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
+				<aside class="tsd-sources">
+					<p>Inherited from <a href="_channel_.event.html">Event</a>.<a href="_channel_.event.html#payload">payload</a></p>
+					<ul>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L18">src/channel.ts:18</a></li>
+					</ul>
+				</aside>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-				<a name="useeffectatmount" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> use<wbr>Effect<wbr>AtMount</h3>
-				<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-					<li class="tsd-signature tsd-kind-icon">use<wbr>Effect<wbr>AtMount<span class="tsd-signature-symbol">(</span>fn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">React.EffectCallback</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/hooks.ts#L106">src/hooks.ts:106</a></li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>More readable version of useEffect(fn, []). Only on run at mount time.</p>
-							</div>
-						</div>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>fn: <span class="tsd-signature-type">React.EffectCallback</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-					</li>
-				</ul>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+				<a name="result" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> result</h3>
+				<div class="tsd-signature tsd-kind-icon">result<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L23">src/channel.ts:23</a></li>
+					</ul>
+				</aside>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-				<a name="usefilter" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> use<wbr>Filter</h3>
-				<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-					<li class="tsd-signature tsd-kind-icon">use<wbr>Filter<span class="tsd-signature-symbol">(</span>eventSpec<span class="tsd-signature-symbol">: </span><a href="_channel_.html#eventmatcher" class="tsd-signature-type">EventMatcher</a>, handler<span class="tsd-signature-symbol">: </span><a href="../interfaces/_channel_.listener.html" class="tsd-signature-type">Listener</a>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/_hooks_.listenerconfigwithdeps.html" class="tsd-signature-type">ListenerConfigWithDeps</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MutableRefObject</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Subscription</span><span class="tsd-signature-symbol">&gt;</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/hooks.ts#L88">src/hooks.ts:88</a></li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Allows a component to intercept and run synchronous
-								consequences, alter events, or throw errors to cancel the processing</p>
-							</div>
-							<dl class="tsd-comment-tags">
-								<dt>argument</dt>
-								<dd><p>eventSpec - the criteria for the event to listen for</p>
-								</dd>
-								<dt>argument</dt>
-								<dd><p>handler - the function to be run synchronously upon the event before all listeners</p>
-								</dd>
-								<dt>argument</dt>
-								<dd><p>options - If the handler closes over React hook variables which
-									are not stable, provide the variables in the <code>deps</code> field of this object.</p>
-								</dd>
-							</dl>
-						</div>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>eventSpec: <a href="_channel_.html#eventmatcher" class="tsd-signature-type">EventMatcher</a></h5>
-							</li>
-							<li>
-								<h5>handler: <a href="../interfaces/_channel_.listener.html" class="tsd-signature-type">Listener</a></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> options: <a href="../interfaces/_hooks_.listenerconfigwithdeps.html" class="tsd-signature-type">ListenerConfigWithDeps</a><span class="tsd-signature-symbol"> = {}</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">MutableRefObject</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Subscription</span><span class="tsd-signature-symbol">&gt;</span></h4>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-				<a name="uselistener" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> use<wbr>Listener</h3>
-				<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-					<li class="tsd-signature tsd-kind-icon">use<wbr>Listener<span class="tsd-signature-symbol">(</span>eventSpec<span class="tsd-signature-symbol">: </span><a href="_channel_.html#eventmatcher" class="tsd-signature-type">EventMatcher</a>, handler<span class="tsd-signature-symbol">: </span><a href="../interfaces/_channel_.listener.html" class="tsd-signature-type">Listener</a>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/_hooks_.listenerconfigwithdeps.html" class="tsd-signature-type">ListenerConfigWithDeps</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MutableRefObject</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Subscription</span><span class="tsd-signature-symbol">&gt;</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/hooks.ts#L64">src/hooks.ts:64</a></li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Allows a component to attach (maybe async) consequences
-									to event patterns: strings, regexes, or function predicates.
-									Handlers return Observables for flexible scheduling/cancelation.
-								Cleans up when the component is unmounted.</p>
-							</div>
-							<dl class="tsd-comment-tags">
-								<dt>argument</dt>
-								<dd><p>eventSpec - the criteria for the event to listen for</p>
-								</dd>
-								<dt>argument</dt>
-								<dd><p>handler - the function to be run upon the event, after all filters</p>
-								</dd>
-								<dt>argument</dt>
-								<dd><p>options - If the handler closes over React hook variables which
-									are not stable, provide the variables in the <code>deps</code> field of this object.</p>
-								</dd>
-							</dl>
-						</div>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>eventSpec: <a href="_channel_.html#eventmatcher" class="tsd-signature-type">EventMatcher</a></h5>
-							</li>
-							<li>
-								<h5>handler: <a href="../interfaces/_channel_.listener.html" class="tsd-signature-type">Listener</a></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> options: <a href="../interfaces/_hooks_.listenerconfigwithdeps.html" class="tsd-signature-type">ListenerConfigWithDeps</a><span class="tsd-signature-symbol"> = {}</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">MutableRefObject</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Subscription</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						<p>A ref to a subscription, on which you may invoke .current.unsubscribe()</p>
-					</li>
-				</ul>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+				<a name="type" class="tsd-anchor"></a>
+				<h3>type</h3>
+				<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+				<aside class="tsd-sources">
+					<p>Inherited from <a href="_channel_.event.html">Event</a>.<a href="_channel_.event.html#type">type</a></p>
+					<ul>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L17">src/channel.ts:17</a></li>
+					</ul>
+				</aside>
 			</section>
 		</section>
 		<footer class="with-border-bottom">
@@ -3061,10 +2918,11 @@ img {
 						<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
 					</ul>
 					<ul class="tsd-legend">
-						<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+						<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+						<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
 					</ul>
 					<ul class="tsd-legend">
-						<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+						<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
 					</ul>
 					<ul class="tsd-legend">
 						<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>

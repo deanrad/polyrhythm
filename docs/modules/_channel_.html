@@ -2738,6 +2738,9 @@ img {
 			<a href="../interfaces/_channel_.event.html" class="tsd-kind-icon">Event</a>
 		</li>
 		<li class=" tsd-kind-interface tsd-parent-kind-module">
+			<a href="../interfaces/_channel_.eventwithresult.html" class="tsd-kind-icon">Event<wbr>With<wbr>Result</a>
+		</li>
+		<li class=" tsd-kind-interface tsd-parent-kind-module">
 			<a href="../interfaces/_channel_.filter.html" class="tsd-kind-icon">Filter</a>
 		</li>
 		<li class=" tsd-kind-interface tsd-parent-kind-module">
@@ -2751,6 +2754,9 @@ img {
 		</li>
 		<li class=" tsd-kind-interface tsd-parent-kind-module">
 			<a href="../interfaces/_channel_.triggerconfig.html" class="tsd-kind-icon">Trigger<wbr>Config</a>
+		</li>
+		<li class=" tsd-kind-interface tsd-parent-kind-module">
+			<a href="../interfaces/_channel_.triggererconfig.html" class="tsd-kind-icon">Triggerer<wbr>Config</a>
 		</li>
 		<li class=" tsd-kind-type-alias tsd-parent-kind-module">
 			<a href="_channel_.html#eventmatcher" class="tsd-kind-icon">Event<wbr>Matcher</a>
@@ -2825,11 +2831,13 @@ img {
 						<h3>Interfaces</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_channel_.event.html" class="tsd-kind-icon">Event</a></li>
+							<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_channel_.eventwithresult.html" class="tsd-kind-icon">Event<wbr>With<wbr>Result</a></li>
 							<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_channel_.filter.html" class="tsd-kind-icon">Filter</a></li>
 							<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_channel_.listener.html" class="tsd-kind-icon">Listener</a></li>
 							<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_channel_.listenerconfig.html" class="tsd-kind-icon">Listener<wbr>Config</a></li>
 							<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_channel_.predicate.html" class="tsd-kind-icon">Predicate</a></li>
 							<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_channel_.triggerconfig.html" class="tsd-kind-icon">Trigger<wbr>Config</a></li>
+							<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_channel_.triggererconfig.html" class="tsd-kind-icon">Triggerer<wbr>Config</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
@@ -2887,7 +2895,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Event<wbr>Matcher<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">RegExp</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_channel_.predicate.html" class="tsd-signature-type">Predicate</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L29">src/channel.ts:29</a></li>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L30">src/channel.ts:30</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2900,7 +2908,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">channel<span class="tsd-signature-symbol">:</span> <a href="../classes/_channel_.channel.html" class="tsd-signature-type">Channel</a><span class="tsd-signature-symbol"> = new Channel()</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L290">src/channel.ts:290</a></li>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L299">src/channel.ts:299</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2910,7 +2918,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">filter<span class="tsd-signature-symbol">:</span> <a href="../classes/_channel_.channel.html#filter" class="tsd-signature-type">filter</a><span class="tsd-signature-symbol"> = channel.filter.bind(channel)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L293">src/channel.ts:293</a></li>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L302">src/channel.ts:302</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2920,7 +2928,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">listen<span class="tsd-signature-symbol">:</span> <a href="../classes/_channel_.channel.html#listen" class="tsd-signature-type">listen</a><span class="tsd-signature-symbol"> = channel.listen.bind(channel)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L294">src/channel.ts:294</a></li>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L303">src/channel.ts:303</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2930,7 +2938,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">log<span class="tsd-signature-symbol">:</span> <a href="../classes/_channel_.channel.html#log" class="tsd-signature-type">log</a><span class="tsd-signature-symbol"> = channel.log.bind(channel)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L297">src/channel.ts:297</a></li>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L306">src/channel.ts:306</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2940,7 +2948,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">on<span class="tsd-signature-symbol">:</span> <a href="../classes/_channel_.channel.html#on" class="tsd-signature-type">on</a><span class="tsd-signature-symbol"> = channel.on.bind(channel)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L295">src/channel.ts:295</a></li>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L304">src/channel.ts:304</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2950,7 +2958,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">query<span class="tsd-signature-symbol">:</span> <a href="../classes/_channel_.channel.html#query" class="tsd-signature-type">query</a><span class="tsd-signature-symbol"> = channel.query.bind(channel)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L292">src/channel.ts:292</a></li>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L301">src/channel.ts:301</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2960,7 +2968,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">reset<span class="tsd-signature-symbol">:</span> <a href="../classes/_channel_.channel.html#reset" class="tsd-signature-type">reset</a><span class="tsd-signature-symbol"> = channel.reset.bind(channel)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L298">src/channel.ts:298</a></li>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L307">src/channel.ts:307</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2970,7 +2978,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">spy<span class="tsd-signature-symbol">:</span> <a href="../classes/_channel_.channel.html#spy" class="tsd-signature-type">spy</a><span class="tsd-signature-symbol"> = channel.spy.bind(channel)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L296">src/channel.ts:296</a></li>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L305">src/channel.ts:305</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2980,7 +2988,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">trigger<span class="tsd-signature-symbol">:</span> <a href="../classes/_channel_.channel.html#trigger" class="tsd-signature-type">trigger</a><span class="tsd-signature-symbol"> = channel.trigger.bind(channel)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L291">src/channel.ts:291</a></li>
+						<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L300">src/channel.ts:300</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2997,7 +3005,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L305">src/channel.ts:305</a></li>
+								<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L314">src/channel.ts:314</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3038,7 +3046,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L300">src/channel.ts:300</a></li>
+								<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L309">src/channel.ts:309</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -3055,7 +3063,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L351">src/channel.ts:351</a></li>
+								<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L360">src/channel.ts:360</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3078,7 +3086,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/9a2718c/src/channel.ts#L327">src/channel.ts:327</a></li>
+								<li>Defined in <a href="https://github.com/deanius/polyrhythm/blob/90d9bdb/src/channel.ts#L336">src/channel.ts:336</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
