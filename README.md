@@ -177,13 +177,6 @@ Also see [storybook-animate](https://github.com/deanius/storybook-animate) for a
 
 -->
 
-# React Support
-
-`useFilter` and `useListener` are React wrappers over the `polyrhythm` exported functions `filter` and `listen`. (Listen is aliased `on`, in honor of JQuery). What these wrapper hooks do is limit the lifetime of the event listener, and its side-effects, to the lifetime of the hosting component. These hooks will subscribe and unsubscribe to the channel as their component is (un)-mounted, or explicit `deps`, may be passed, so as not to close over stale values.
-
-## Multiple Channel support
-
-`useChannel` is available for more advanced scenarios where a different channel is desired, such as for keeping one sub-tree's events separated from the default, for privacy, simulating a server in-browser (!), or other reasons. (This feature is in progress/experimental).
 
 # FAQ
 
