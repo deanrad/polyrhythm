@@ -1,4 +1,4 @@
-import { Subscribable, of, never, timer } from 'rxjs';
+import { Subscribable, of, NEVER, timer, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 export { concat } from 'rxjs';
 export { map, tap, scan } from 'rxjs/operators';
@@ -13,10 +13,10 @@ export const randomId = (length: number = 7) => {
     .padStart(length, '0');
 };
 
-export interface AwaitableObservable
-  extends PromiseLike<any>,
-    Subscribable<any> {
-  toPromise(): PromiseLike<any>;
+export interface AwaitableObservable<T>
+  extends PromiseLike<T>,
+    Subscribable<T> {
+  toPromise(): PromiseLike<T>;
 }
 
 /**
@@ -35,16 +35,12 @@ export interface AwaitableObservable
  * after(Infinity, () => new Date()).toPromise()
  * ```
  */
-export const after = (
-  ms: number,
-  objOrFn?: any,
-  label?: any
-): AwaitableObservable => {
-  const valueProducer =
-    typeof objOrFn === 'function' ? () => objOrFn(label) : () => objOrFn;
-  const delay = ms <= 0 ? of(0) : ms === Infinity ? never() : timer(ms);
+export function after<T>(ms: number, objOrFn?: any): AwaitableObservable<T> {
+  const delay = ms <= 0 ? of(0) : ms === Infinity ? NEVER : timer(ms);
 
-  const resultObs = delay.pipe(map(valueProducer));
+  const resultObs: Observable<T> = delay.pipe(
+    map(() => (typeof objOrFn === 'function' ? objOrFn() : objOrFn))
+  );
 
   // after is a 'thenable, thus usable with await.
   // ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
@@ -54,7 +50,7 @@ export const after = (
   };
   // @ts-ignore
   return resultObs;
-};
+}
 
 /** Executes the given function on the microtask queue.
  * The microtask queue flushes before the macrotask queue.
@@ -82,12 +78,12 @@ export function macroq(fn: Function) {
 const getTimestamp = () => new Date().getTime();
 
 /** Returns a Promise for the point in time at which all existing queued microtasks (e.g. Promise.resolve()) have completed. */
-export function microflush(): Promise<Number> {
+export function microflush(): Promise<number> {
   return Promise.resolve().then(() => getTimestamp());
 }
 
 /** Returns a Promise for the point in time at which all existing queued macrotasks (e.g. setTimeout 0) have completed. */
-export function macroflush(): Promise<Number> {
+export function macroflush(): Promise<number> {
   return new Promise(resolve => {
     return setTimeout(() => resolve(getTimestamp()), 0);
   });

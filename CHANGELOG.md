@@ -4,6 +4,8 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 
+- [1.1.1 Add optional TypeScript typings](#111-add-optional-typescript-typings)
+- [1.1.0 Remove React dependencies](#110-remove-react-dependencies)
 - [1.0.12 Trigger whole event objects](#1012-trigger-whole-event-objects)
 - [1.0.11 `query.toPromise()` returns the next matching event](#1011-querytopromise-returns-the-next-matching-event)
 - [1.0.8 `microq` and `macroq` functions](#108-microq-and-macroq-functions)
@@ -11,6 +13,14 @@
 - [1.0.6 Handy RxJS exports](#106-handy-rxjs-exports)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+#### 1.1.1 Add optional TypeScript typings
+
+The primary functions you use to `trigger`, `filter`, `listen`, and `query` the event bus, as well as the `after` utility, all at least somewhat support adding Typescript for addtional editor awareness.
+
+#### 1.1.0 Remove React dependencies
+
+The convenience hooks have been moved to the [polyrhythm-react](https://github.com/deanius/polyrhythm-react), so as not to import React in Node environments, or express a framework preference.
 
 #### 1.0.12 Trigger whole event objects
 
