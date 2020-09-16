@@ -1,4 +1,4 @@
-[![npm version](https://badge.fury.io/js/`polyrhythm`.svg)](https://badge.fury.io/js/polyrhythm)[![<6 Kb](https://img.shields.io/badge/gzip%20size-%3C6%20kB-brightgreen.svg)](https://www.npmjs.com/package/polyrhythm)
+[![npm version](https://badge.fury.io/js/polyrhythm.svg)](https://badge.fury.io/js/polyrhythm)[![<4 Kb](https://img.shields.io/badge/gzip%20size-%3C4%20kB-brightgreen.svg)](https://www.npmjs.com/package/polyrhythm)
 [![Travis](https://img.shields.io/travis/deanius/polyrhythm.svg)](https://travis-ci.org/deanius/polyrhythm)
 [![Maintainability](https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/maintainability)](https://codeclimate.com/github/deanius/polyrhythm/maintainability)
 [![TypeScript](https://camo.githubusercontent.com/832d01092b0e822178475741271b049a2e27df13/68747470733a2f2f62616467656e2e6e65742f62616467652f2d2f547970655363726970742f626c75653f69636f6e3d74797065736372697074266c6162656c)](https://github.com/ellerbrock/typescript-badges/)<a href="#badge"><img alt="code style: prettier" src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square"></a>[![twitter link](https://img.shields.io/badge/twitter-@deaniusdev-55acee.svg)](https://twitter.com/deaniusdev)
@@ -13,7 +13,7 @@ Its API is a synthesis of ideas from:
 - 💜RxJS. Older than Promises, nearly as old as JQuery.
 - 💜Redux-Observable, Redux Saga, Redux Thunk.
 
-For use in a React context, [polyrhythm-react](https://github.com/deanius/polyrhythm) exports all in this library, plus React hooks for interfacing with it.
+For use in a React context, [polyrhythm-react](https://github.com/deanius/polyrhythm-react) exports all in this library, plus React hooks for interfacing with it.
 
 ## Installation
 
@@ -177,7 +177,6 @@ Also see [storybook-animate](https://github.com/deanius/storybook-animate) for a
 
 -->
 
-
 # FAQ
 
 **Got TypeScript typings?**
@@ -185,7 +184,7 @@ Also see [storybook-animate](https://github.com/deanius/storybook-animate) for a
 But of course!
 
 **How large?**
-16Kb parsed size, 5Kb Gzipped
+16Kb parsed size, 4Kb Gzipped
 
 **In Production Use?**
 Yes.
