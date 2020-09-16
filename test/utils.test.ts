@@ -122,7 +122,7 @@ describe('after', () => {
       const a = after<FooPayload>(0, { fooId: 'abc' });
       a.subscribe(n => {
         // got typescript support!
-        n.fooId;
+        // n.fooId;
         expect(n).to.eql({ fooId: 'abc' });
       });
     });
@@ -131,7 +131,7 @@ describe('after', () => {
       const a = after<FooPayload>(0, () => ({ fooId: 'abc' }));
       a.subscribe(n => {
         // got typescript support!
-        n.fooId;
+        // n.fooId;
         expect(n).to.eql({ fooId: 'abc' });
       });
     });
@@ -140,7 +140,7 @@ describe('after', () => {
       const a = after<FooPayload>(0, () => ({ fooId: 'abc' }));
       a.then(n => {
         // got typescript support!
-        n.fooId;
+        // n.fooId;
         expect(n).to.eql({ fooId: 'abc' });
       });
     });
