@@ -55,7 +55,7 @@ require('clear')();
 
 describe('Sequences of Methods', () => {
   let callCount = 0;
-  const thrower: Filter = (e: Event) => {
+  const thrower: Filter<Event> = (e: Event) => {
     callCount++;
     takesException(e);
   };
@@ -848,6 +848,110 @@ describe('Sequences of Methods', () => {
       });
     });
   });
+
+  describe('TypeScript Type Inference', () => {
+    interface FooPayload {
+      fooId: string;
+    }
+
+    interface AtLeastFooPayload extends FooPayload {
+      [others: string]: any;
+    }
+
+    interface FooEvent extends Event {
+      type: 'foo';
+      bar: string;
+    }
+
+    interface FooPayloadEvent extends Event {
+      type: 'foo';
+      payload: FooPayload;
+    }
+
+    describe('#trigger', () => {
+      describe('1 argument version', () => {
+        it('can strongly type the event', () => {
+          trigger<FooEvent>({
+            type: 'foo',
+            bar: 'baz',
+          });
+        });
+
+        it('can weakly type the event', () => {
+          trigger({
+            type: 'foo',
+            bam: 'bing',
+          });
+        });
+      });
+
+      describe('2 argument version', () => {
+        it('can strongly type the payload', () => {
+          trigger<FooPayload>('type', {
+            fooId: 'bar',
+          });
+        });
+
+        it('can weakly type the payload', () => {
+          trigger<AtLeastFooPayload>('type', {
+            fooId: 'bar',
+            catId: 'Mona Lisa',
+            dogId: 'Mr. Thompson Wooft',
+          });
+        });
+
+        it('dont have to type the payload', () => {
+          trigger('type', { anyField: true });
+        });
+      });
+    });
+
+    describe('#filter, #trigger', () => {
+      it('should type it up', () => {
+        filter<FooPayloadEvent>('foo', e => {
+          // Typescript helps here
+          e.payload.fooId = 'bar';
+        });
+
+        // mutates the payload
+        const payload = { fooId: 'bazž' };
+        let result = trigger<FooPayload>('foo', payload);
+        expect(payload.fooId).to.eq('bar');
+
+        // returns mutated payload (no type safety)
+        const e: FooPayloadEvent = { type: 'foo', payload: { fooId: 'moo' } };
+        result = trigger<FooPayloadEvent>(e);
+        expect(result.payload.fooId).to.eq('bar');
+      });
+    });
+
+    describe('#listen, #trigger', () => {
+      it('should type it up', () => {
+        const seenFooIds: string[] = [];
+        listen<FooPayloadEvent>('foo', e => {
+          // Typescript helps here
+          seenFooIds.push(e.payload.fooId);
+        });
+
+        const payload = { fooId: 'bazž' };
+        trigger<FooPayload>('foo', payload);
+        expect(seenFooIds).to.eql(['bazž']);
+      });
+    });
+
+    describe('#query', () => {
+      it('should type it up no matter how triggered', () => {
+        const fooIdMatches: string[] = [];
+        query<FooPayloadEvent>(true).subscribe(n => {
+          fooIdMatches.push(n.payload.fooId);
+        });
+        trigger('foo', { fooId: 'juan' });
+        trigger<FooPayload>('foo', { fooId: 'tú' });
+        trigger<FooPayloadEvent>({ type: 'foo', payload: { fooId: 'free' } });
+        expect(fooIdMatches).to.eql(['juan', 'tú', 'free']);
+      });
+    });
+  });
 });
 
 const event = { type: 'anytype', payload: randomId() };
@@ -857,11 +961,11 @@ const replace = ConcurrencyMode.replace;
 const parallel = ConcurrencyMode.parallel;
 const serial = ConcurrencyMode.serial;
 
-const takesException: Filter = () => {
+const takesException: Filter<any> = () => {
   throw new Error(`Error: ${randomId()}`);
 };
 
-const mutator: Filter = (e: Event) => {
+const mutator: Filter<Event> = (e: Event) => {
   // @ts-ignore
   e.mutantProp = ':)';
 };

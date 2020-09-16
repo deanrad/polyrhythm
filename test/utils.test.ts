@@ -112,6 +112,39 @@ describe('after', () => {
       });
     });
   });
+
+  describe('Typescript Inference', () => {
+    interface FooPayload {
+      fooId: string;
+    }
+
+    it('lets you type the deferred value', () => {
+      const a = after<FooPayload>(0, { fooId: 'abc' });
+      a.subscribe(n => {
+        // got typescript support!
+        n.fooId;
+        expect(n).to.eql({ fooId: 'abc' });
+      });
+    });
+
+    it('lets you type the deferred value producing function ', () => {
+      const a = after<FooPayload>(0, () => ({ fooId: 'abc' }));
+      a.subscribe(n => {
+        // got typescript support!
+        n.fooId;
+        expect(n).to.eql({ fooId: 'abc' });
+      });
+    });
+
+    it('lets you see types through then', () => {
+      const a = after<FooPayload>(0, () => ({ fooId: 'abc' }));
+      a.then(n => {
+        // got typescript support!
+        n.fooId;
+        expect(n).to.eql({ fooId: 'abc' });
+      });
+    });
+  });
 });
 
 describe('microq (microqueue)', () => {

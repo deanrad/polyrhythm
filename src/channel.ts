@@ -7,7 +7,7 @@ import {
   concat,
   defer,
 } from 'rxjs';
-import { filter as _filter, tap, takeUntil, first } from 'rxjs/operators';
+import { filter as _filter, tap, takeUntil, first, map } from 'rxjs/operators';
 import { mergeMap, concatMap, exhaustMap, switchMap } from 'rxjs/operators';
 import { toggleMap } from './toggleMap';
 export { toggleMap } from './toggleMap';
@@ -18,6 +18,9 @@ export interface Event {
   payload?: any;
   error?: boolean;
   meta?: Object;
+}
+export interface EventWithAnyFields extends Event {
+  [others: string]: any;
 }
 export interface EventWithResult extends Event {
   result?: Promise<any>;
@@ -39,16 +42,16 @@ export type EventMatcher = string | string[] | RegExp | Predicate | boolean;
  * stream. To do that see `query`.
  * @see query
  */
-export interface Filter {
-  (item: Event): any;
+export interface Filter<T> {
+  (item: T): any;
 }
 
 /**
  * The function you assign to `.on(eventType, fn)`
  * events is known as a Listener. It receives the event.
  */
-export interface Listener {
-  (item: Event): any;
+export interface Listener<T> {
+  (item: T): any;
 }
 
 /**
@@ -103,8 +106,8 @@ export interface TriggererConfig {
 
 export class Channel {
   private channel: Subject<Event>;
-  private filters: Map<Predicate, Filter>;
-  private listeners: Map<Predicate, Listener>;
+  private filters: Map<Predicate, Filter<any>>;
+  private listeners: Map<Predicate, Listener<any>>;
   private listenerEnders: Map<Predicate, Subject<any>>;
   private listenerParts: Map<Predicate, Subject<any>>;
   public errors: Subject<string | Error>;
@@ -112,8 +115,8 @@ export class Channel {
 
   constructor() {
     this.channel = new Subject<Event>();
-    this.filters = new Map<Predicate, Filter>();
-    this.listeners = new Map<Predicate, Listener>();
+    this.filters = new Map<Predicate, Filter<Event>>();
+    this.listeners = new Map<Predicate, Listener<Event>>();
     this.listenerEnders = new Map<Predicate, Subject<any>>();
     this.listenerParts = new Map<Predicate, Subject<any>>();
     this.errors = new Subject<string | Error>();
@@ -124,12 +127,15 @@ export class Channel {
     }
   }
 
-  public trigger(
-    type: string | Event,
-    payload?: any,
+  public trigger<T>(
+    eventOrType: string | (EventWithAnyFields & T),
+    payload?: T,
     config?: TriggererConfig
   ): EventWithResult {
-    const event: EventWithResult = typeof type === 'string' ? { type } : type;
+    const event: EventWithResult =
+      typeof eventOrType === 'string'
+        ? { type: eventOrType as string }
+        : eventOrType;
     payload && Object.assign(event, { payload });
 
     for (const [predicate, filter] of this.filters.entries()) {
@@ -152,10 +158,11 @@ export class Channel {
     return event;
   }
 
-  public query(eventMatcher: EventMatcher): Observable<Event> {
-    const resultObs = this.channel
-      .asObservable()
-      .pipe(_filter(getEventPredicate(eventMatcher)));
+  public query<T extends Event>(eventMatcher: EventMatcher): Observable<T> {
+    const resultObs = this.channel.asObservable().pipe(
+      _filter(getEventPredicate(eventMatcher)),
+      map(e => e as T)
+    );
 
     // @ts-ignore
     resultObs.toPromise = function() {
@@ -165,7 +172,10 @@ export class Channel {
     return resultObs;
   }
 
-  public filter(eventMatcher: EventMatcher, f: Filter) {
+  public filter<T extends Event>(
+    eventMatcher: EventMatcher,
+    f: Filter<T>
+  ): Subscription {
     const predicate = getEventPredicate(eventMatcher);
     this.filters.set(predicate, f);
     return new Subscription(() => {
@@ -173,9 +183,9 @@ export class Channel {
     });
   }
 
-  public listen(
+  public listen<T extends Event>(
     eventMatcher: EventMatcher,
-    listener: Listener,
+    listener: Listener<T>,
     config: ListenerConfig = {}
   ) {
     const predicate = getEventPredicate(eventMatcher);
@@ -192,6 +202,7 @@ export class Channel {
 
     const enqueuePart = (event: Event) => {
       try {
+        // @ts-ignore
         const userReturned = toObservable(listener(event));
         const part = concat(userReturned, applyCompleteTrigger());
         parts.next(part);
@@ -248,13 +259,13 @@ export class Channel {
 
   public on(
     eventMatcher: EventMatcher,
-    listener: Listener,
+    listener: Listener<Event>,
     config: ListenerConfig = {}
   ) {
     return listen(eventMatcher, listener, config);
   }
 
-  public spy(listener: Listener) {
+  public spy(listener: Listener<Event>) {
     let sub: Subscription;
     let safelyCallListener = (event: Event): any => {
       try {
