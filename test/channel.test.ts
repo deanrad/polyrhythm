@@ -537,6 +537,26 @@ describe('Sequences of Methods', () => {
           },
         ]);
       });
+
+      it('listener may be a generator', function() {
+        const seen = eventsMatching(true, this);
+        expect(1).to.eql(1);
+        listen(
+          'seq',
+          function*({ payload: count }) {
+            for (let i = 1; i <= count; i++) {
+              yield i;
+            }
+          },
+          { trigger: { next: 'seq-value' } }
+        );
+        trigger('seq', 2);
+        expect(seen).to.eql([
+          { type: 'seq', payload: 2 },
+          { type: 'seq-value', payload: 1 },
+          { type: 'seq-value', payload: 2 },
+        ]);
+      });
     });
 
     describe('Error Handling', () => {
