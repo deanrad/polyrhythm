@@ -361,10 +361,11 @@ function toObservable(_results: any) {
       return () => _results.unsubscribe();
     });
 
-  // A Promise is acceptable
-  if (_results.then) return from(_results);
+  // A Promise or generator is acceptable
+  if (_results.then || typeof _results[Symbol.iterator] === 'function')
+    return from(_results);
 
-  // otherwiser we convert it to a single-item Observable
+  // otherwise we convert it to a single-item Observable
   return of(_results);
 }
 
