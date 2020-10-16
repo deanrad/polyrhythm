@@ -23,7 +23,7 @@ npm install polyrhythm
 
 ## Examples - What Can You Build With It?
 
-- The [Ping Pong Example](https://codesandbox.io/s/`polyrhythm`-ping-pong-r6zk5) (as Soccer)
+- The [Ping Pong Example](https://codesandbox.io/s/polyrhythm-ping-pong-r6zk5) (as Soccer)
 - The [Chat UI Example](https://codesandbox.io/s/poly-chat-imw2z) with TypingIndicator
 - The [Redux Counter Example](https://codesandbox.io/s/poly-redux-counter-solved-m5cm0)
 - The [Redux Todos Example](https://codesandbox.io/s/polyrhythm-redux-todos-ltigo)
@@ -37,9 +37,9 @@ npm install polyrhythm
 
 The goal of `polyrhythm` is to be a centralized control of timing for sync or async operations in your app.
 
-Because of it's pub-sub/event-bus design, your app remains inherently scalable because originators of events don't know about publishers, or vice versa. If a single subscriber errs out, neither the publisher nor other subscribers are affected. Your UI layer remains simple— its only job is to trigger/originate events. All the logic remains separated from the UI layer by the event bus. Testing of most of your app's effects can be done without going through your UI layer.
+Because of it's pub-sub/event-bus design, your app remains inherently scalable because originators of events don't know about consumers, or vice versa. If a single subscriber errs out, neither the publisher nor other subscribers are affected. Your UI layer remains simple— its only job is to trigger/originate events. All the logic remains separated from the UI layer by the event bus. Testing of most of your app's effects can be done without going through your UI layer.
 
-`polyrhythm` envisions that a different set of primitives can compose into more beautiful Web Apps and User Experiences than the current JavaScript tools allow for. It asserts you can code up to any standard, using only an API that is delightfully simple, with an _extrememly short learning curve._
+`polyrhythm` envisions a set of primitives can compose into beautiful Web Apps and User Experiences more simply and flexibly than current JavaScript tools allow for. All thie with a tiny bundle size, and an API that is delightfully simple.
 
 # Why Might I Want It?
 
@@ -69,23 +69,26 @@ A polyrhythm app, sync or async, can be built out of 6 or fewer primitives:
 
 - `query` - Provides an Observable of matching events from the event bus. Useful when you need to create a derived Observable for further processing, or for controlling/terminating another Observable. Example: `interval(1000).takeUntil(query('user/activity'))`
 
+## Observable creators
+
 - `after` - Defers a function call into an Observable of that function call, after a delay. This is the simplest way to get a cancelable side-effect, and can be used in places that expect either a `Promise` or an `Observable`. <br/>Promise — `await after(10000, () => modal('Your session has expired'))`<br/>Observable — `interval(1000).takeUntil(after(10000))`
   `
-- `concat` - Combines Observables by sequentially starting them as each previous one finishes. This only works on Observables which are deferred, not Promises which are begun at their time of creation. <br/>Sequence — `login().then(() => concat(after(9000, 'Your Session is about to expire'), after(1000, 'Your session has expired')).subscribe(modal))`
+- `concat` - Combines Observables by sequentially starting them as each previous one finishes. This only works on Observables which are deferred, not Promises which are begun at their time of creation. <br/>Sequence — `login().then(() => concat(after(9000, 'Your session is about to expire'), after(1000, 'Your session has expired')).subscribe(modal))`
 
-While not a primitive function, the listener `mode` allows you to control the concurrency behavior of a listener declaratively, and is important for making polyrhythm so useful. For an autocomplete or session timeout, the `replace` mode is appropriate. For other use cases, `serial`, `parallel` or `ignore` may be appropriate.<br/>`listen('user/activity', () => concat(after(9000, 'Timing out soon.'), after(1000, 'Timed out')).tap(modal), { mode: 'replace' })`
-
-You can use Observables from any source in `polyrhythm`, not just those created with `concat` and `after`. For maximum flexibility, use the `Observable` constructor to wrap any async operation:
+You can use Observables from any source in `polyrhythm`, not just those created with `concat` and `after`. For maximum flexibility, use the `Observable` constructor to wrap any async operation - and use them anywhere you need more control over the Observables behavior. Be sure to return a cleanup function from the Observable constructor
 
 ```js
-new Observable(notify => {
-  // Like Promise wrapping but..
-  const id = setTimeout(() => {
-    notify.next('beep');
-    notify.complete(); // call 'complete' after 1 or more 'next' calls
-  }, 1000);
-
-  return () => clearTimeout(id); // may return a cancelation fn, ala useEffect.
+listen('user/activity', () => {
+  return concat(
+    new Observable(notify => {       // equivalent to after(9000, "Your session is about to expire")
+      const id = setTimeout(() => {
+        notify.next("Your session is about to expire");
+        notify.complete();           // tells `concat` we're done- Observables may call next() many times
+      }, 9000);
+      return () => clearTimeout(id); // a cancelation function allowing this timeout to be 'replaced' with a new one
+    }),
+    after(1000, () => "Your session has expired"));
+}, { mode: 'replace' });
 });
 ```
 
@@ -93,7 +96,7 @@ new Observable(notify => {
 <summary>
 More Explanation
 </summary>
-According to Pub-Sub, there are publishers and subscribers. In `polyrhythm` there are event **Originators** (publishers) which call `trigger`, and **Subscribers** which `filter`, or `listen` in one of several concurrency modes.
+According to Pub-Sub, there are publishers and subscribers. In `polyrhythm` there are event **Originators** (publishers) which call `trigger`, and **Handlers** which `filter`, or `listen` in one of several concurrency modes.
 
 ## Event Originators
 
@@ -103,9 +106,9 @@ According to Pub-Sub, there are publishers and subscribers. In `polyrhythm` ther
 
 An instance of an event-bus is called a **Channel**. There's a default channel, to which top-level exports `filter`, `trigger`, and `listen` are bound.
 
-## Subscribers
+## Handlers
 
-**Subscribers** are either **Filters** or **Listeners**. Both specify:
+**Handlers** are either **Filters** or **Listeners**. Both specify:
 
 - A function to run
 - An event criteria for when to run the function
@@ -134,9 +137,11 @@ _IMPORTANT: The app is protected from each **Listener** as though by a fuse. `po
 
 # Declare Your Timing, Don't Code It
 
-Most of the time, app code around timing is usually baked into the syntax and shape of applications, and is so extremely hard to change. Either a function is an `async function(){}` — and all its callers are — or it's not. The same goes for generators, marked with `function*() {}`.
+Most of the time, app code around timing is extremely hard to change. It can be a large impact to the codebase to add `async` to a function declaration, or turn a function into a generator with `function*() {}`. That impact can 'hard-code' in latency or unadaptable behaviors. And relying on framework features like the timing difference between `useEffect` and `useLayoutEffect` can make code vulnerable to framework changes, and make it harder to test.
 
-Primitives like async functions and generators are lesser known, and tricky to get right- with more time required to read and change then we would like. Wouldn't it be great if we could abstract that timing information about the function and simply apply it as metadata? `polyrhythm` gives you 5 concurrency modes you can plug in trivially as configuration parameters. See it's effect on the "Increment Async" behavior in the [Redux Counter Example](https://codesandbox.io/s/poly-redux-counter-solved-m5cm0).
+`polyrhythm` gives you 5 concurrency modes you can plug in trivially as configuration parameters. See it's effect on the "Increment Async" behavior in the [Redux Counter Example](https://codesandbox.io/s/poly-redux-counter-solved-m5cm0).
+
+The listener option `mode` allows you to control the concurrency behavior of a listener declaratively, and is important for making polyrhythm so adaptible to desired timing outcomes. For an autocomplete or session timeout, the `replace` mode is appropriate. For other use cases, `serial`, `parallel` or `ignore` may be appropriate.<br/>`listen('user/activity', () => concat(after(9000, 'Your session is about to expire'), after(1000, 'Your session has expired')), { mode: 'replace' })`
 
 If async effects were sounds, this diagram shows how they might overlap/queue/cancel each other.
 
@@ -156,7 +161,7 @@ One of the most time-consuming parts of application development is manually runn
 To aid in creation of test scripts, `polyrhythm` re-exports the RxJS `concat` operator, which sequences Observables. A full script that starts up our Ping Pong, runs it a few seconcs, and shuts it down— takes just a few lines of code:
 
 ```js
-const { filter, listen, log, after, concat, trigger } = require('`polyrhythm`');
+const { filter, listen, log, after, concat, trigger } = require('polyrhythm');
 
 filter(true, log);
 const players = listen(/p[io]ng/, returnBall);
@@ -194,7 +199,7 @@ Yes.
 See [The test suite](/test/channel.test.ts) for details.
 
 **How fast is it?**
-Nearly as fast as RxJS. The [Travis CI build output](https://travis-ci.org/github/deanius/`polyrhythm`) contains some benchmarks.
+Nearly as fast as RxJS. The [Travis CI build output](https://travis-ci.org/github/deanius/polyrhythm) contains some benchmarks.
 
 ---
 
@@ -202,22 +207,21 @@ Nearly as fast as RxJS. The [Travis CI build output](https://travis-ci.org/githu
 
 <details>
 <summary>
-Let's incrementally build a simple ping-pong app with `polyrhythm`.
+Let's incrementally build the ping pong example app with `polyrhythm`.
 </summary>
+
+[Finished version CodeSandbox](https://codesandbox.io/s/polyrhythm-ping-pong-r6zk5)
 
 ## 1) Log all events, and trigger **ping**
 
-Here's an app where a `filter` (one of 2 kinds of listeners) logs all events to the console, and the app `trigger`s a single event of `type: 'ping'`.
-
 ```js
-const { filter, trigger } = require('`polyrhythm`');
+const { filter, trigger, log } = require();
 
-// **** Behavior ****** //
+// **** Behavior (criteria, fn) ****** //
 filter(true, log);
 
 // **** Events (type, payload) ****** //
 trigger('ping', 'Hello World');
-// { type: "ping", payload: "Hello World" }
 
 // **** Effects ({ type, payload }) ****** //
 function log({ type, payload }) {
@@ -227,16 +231,18 @@ function log({ type, payload }) {
 // ping Hello World
 ```
 
+Here's an app where a `filter` (one of 2 kinds of listeners) logs all events to the console, and the app `trigger`s a single event of `type: 'ping'`.
+
 **Explained:** Filters are functions that run before events go on the event bus. This makes filters great for logging, as you typically need some log output to tell you what caused an error, if an error occurs later. This filter's criteria is simply `true`, so it runs for all events. Strings, arrays of strings, Regex and boolean-functions are also valid kinds of criteria. The filter handler `log` recieves the event as an argument, so we destructure the `type` and `payload` from it, and send it to the console.
 
 We `trigger` a `ping`, passing `type` and `payload` arguments. This reduces boilerplate a bit compared to Redux' `dispatch({ type: 'ping' })`. But `trigger` will work with a pre-assembled event too. Now let's play some pong..
 
 ## 2) Respond to **ping** with **pong**
 
-If we just want to respond to a **ping** event with a **pong** event, we could do so in a filter. But filters should be reserved for synchronous side-effect functions like logging, changing state, or dispatching an event/action to a store. So let's convert the **Filter** to a **Listener**.
+If we just want to respond to a **ping** event with a **pong** event, we could do so in a filter. But filters should be reserved for synchronous side-effect functions like logging, changing state, or dispatching an event/action to a store. So let's instead use `listen` to create a **Listener**.
 
 ```js
-const { filter, listen, log, trigger } = require('`polyrhythm`');
+const { filter, listen, log, trigger } = require('polyrhythm');
 
 filter(true, log);
 listen('ping', () => {
@@ -258,7 +264,7 @@ Normally in JavaScript things go fine—until we make something async. But `poly
 Let's suppose we want to trigger a **pong** event, but only after 1 second. We need to define the **Task** that represents "a triggering of a `pong`, after 1 second".
 
 ```js
-const { filter, listen, log, after, trigger } = require('`polyrhythm`');
+const { filter, listen, log, after, trigger } = require('polyrhythm');
 
 filter(true, log);
 listen('ping', () => {
@@ -292,7 +298,7 @@ But back to ping-pong, let's respond both to **ping** and **pong** now...
 Following this pattern of adding listeners, we can enhance the behavior of the app by adding another listener to `ping` it right back:
 
 ```js
-const { filter, listen, log, after, trigger } = require('`polyrhythm`');
+const { filter, listen, log, after, trigger } = require('polyrhythm');
 
 filter(true, log);
 listen('ping', () => {
@@ -332,7 +338,7 @@ In ping-pong, running forever may be what is desired. But when it's not, or when
 While each listener can be individually shut down, when it's time to shut down the app (or in Hot Module Reloading scenarios), it's good to have a way to remove all listeners. The `reset` function does just this. Let's end the game after 4 seconds, then print "done".
 
 ```js
-const { filter, listen, log, after, reset, trigger } = require('`polyrhythm`');
+const { filter, listen, log, after, reset, trigger } = require('polyrhythm');
 
 filter(true, log);
 listen(['ping', 'pong'], returnBall);
