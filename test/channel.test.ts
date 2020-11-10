@@ -22,23 +22,10 @@ import {
   channel,
   Channel,
   Event,
-  EventMatcher,
   ConcurrencyMode,
   Filter,
 } from '../src/channel';
 import { randomId, after } from '../src/utils';
-
-function eventsMatching(
-  eventMatcher: EventMatcher,
-  example: any
-): Array<Event> {
-  const seen = new Array<Event>();
-  const sub = query(eventMatcher).subscribe(e => seen.push(e));
-
-  // can clean up with an afterEach
-  example.subscription = sub;
-  return seen;
-}
 
 function errorsOn(
   channel: Channel,
@@ -49,6 +36,24 @@ function errorsOn(
     .pipe(scan((a, e) => [...a, e], new Array<string | Error>()))
     .subscribe(seen);
   return seen;
+}
+
+function it$(name: string, fn: (arg: Event[]) => void | Promise<any>) {
+  it(name, E$(fn));
+}
+
+function E$<T>(testFn: (arg: T[]) => void | Promise<any>) {
+  return function() {
+    const seen = new Array<T>();
+    // @ts-ignore
+    const sub = query(true).subscribe(event => seen.push(event));
+    const result: any = testFn(seen);
+    if (result && result.then) {
+      return result.finally(() => sub.unsubscribe());
+    }
+    sub.unsubscribe();
+    return result;
+  };
 }
 
 require('clear')();
@@ -229,8 +234,7 @@ describe('Sequences of Methods', () => {
         it('May return an Observable');
         it('May return a Promise');
         describe('May return a Subscription', () => {
-          it('replace: will unsubscribe the previous', function() {
-            const seen = eventsMatching(true, this);
+          it$('replace: will unsubscribe the previous', async seen => {
             // listener returning a subscription
             listen(
               event.type,
@@ -251,8 +255,7 @@ describe('Sequences of Methods', () => {
               'unsubscribe',
             ]);
           });
-          it('toggle: will unsubscribe the previous', function() {
-            const seen = eventsMatching(true, this);
+          it$('toggle: will unsubscribe the previous', async seen => {
             listen(
               event.type,
               () => new Subscription(() => trigger('unsubscribe')),
@@ -271,21 +274,23 @@ describe('Sequences of Methods', () => {
               'anytype',
             ]);
           });
-          it('parallel, serial, ignore: will not unsubscribe the previous', function() {
-            const seen = eventsMatching(true, this);
-            listen(
-              event.type,
-              () => new Subscription(() => trigger('unsubscribe')),
-              { mode: ConcurrencyMode.parallel }
-            );
+          it$(
+            'parallel, serial, ignore: will not unsubscribe the previous',
+            async seen => {
+              listen(
+                event.type,
+                () => new Subscription(() => trigger('unsubscribe')),
+                { mode: ConcurrencyMode.parallel }
+              );
 
-            triggerEvent();
-            triggerEvent();
-            triggerEvent();
+              triggerEvent();
+              triggerEvent();
+              triggerEvent();
 
-            const triggered = seen.map(e => e.type);
-            expect(triggered).to.eql(['anytype', 'anytype', 'anytype']);
-          });
+              const triggered = seen.map(e => e.type);
+              expect(triggered).to.eql(['anytype', 'anytype', 'anytype']);
+            }
+          );
         });
       });
 
@@ -331,11 +336,10 @@ describe('Sequences of Methods', () => {
   });
 
   describe('#query, #trigger', () => {
-    it('finds events triggered after the query', function() {
-      const seen = eventsMatching(true, this);
-
+    it$('finds events triggered after the query', async seen => {
       // trigger events
       const event2 = { type: 'e2', payload: randomId() };
+
       trigger(event.type, event.payload);
       trigger(event2.type, event2.payload);
 
@@ -469,9 +473,7 @@ describe('Sequences of Methods', () => {
         expect(callCount).to.equal(1);
       });
 
-      it('listener may return a Promise-returning function to defer evaluation and propogate its resolved value', async function() {
-        const seen = eventsMatching(true, this);
-
+      it$('listener may return a Promise-returning function', async seen => {
         listen(
           'known-event',
           () =>
@@ -505,9 +507,7 @@ describe('Sequences of Methods', () => {
         ]);
       });
 
-      it('listener may return an ObservableFactory', async function() {
-        const seen = eventsMatching(true, this);
-
+      it$('listener may return an ObservableFactory', async seen => {
         listen(
           'known-event',
           () =>
@@ -538,8 +538,7 @@ describe('Sequences of Methods', () => {
         ]);
       });
 
-      it('listener may be a generator', function() {
-        const seen = eventsMatching(true, this);
+      it$('listener may be a generator', async seen => {
         expect(1).to.eql(1);
         listen(
           'seq',
@@ -605,34 +604,37 @@ describe('Sequences of Methods', () => {
       expect(result).not.to.have.property('mutantProp');
     });
 
-    it('can be used to trigger new events asynchronously from Promises', async function() {
-      const seen = eventsMatching(true, this);
-      listen('cause', () =>
-        delay(1, () => {
-          trigger('effect');
-        })
-      );
-      trigger('cause');
-      expect(seen).to.eql([{ type: 'cause' }]);
-      await delay(2);
-      expect(seen).to.eql([{ type: 'cause' }, { type: 'effect' }]);
-    });
+    it$(
+      'can be used to trigger new events asynchronously from Promises',
+      async seen => {
+        listen('cause', () =>
+          delay(1, () => {
+            trigger('effect');
+          })
+        );
+        trigger('cause');
+        expect(seen).to.eql([{ type: 'cause' }]);
+        await query(true);
+        expect(seen).to.eql([{ type: 'cause' }, { type: 'effect' }]);
+      }
+    );
 
-    it('can be used to trigger new events asynchronously from Observables', async function() {
-      const seen = eventsMatching(true, this);
-      listen('cause', () =>
-        after(1, () => {
-          trigger('effect');
-        })
-      );
-      trigger('cause');
-      expect(seen).to.eql([{ type: 'cause' }]);
-      await delay(2);
-      expect(seen).to.eql([{ type: 'cause' }, { type: 'effect' }]);
-    });
+    it$(
+      'can be used to trigger new events asynchronously from Observables',
+      async seen => {
+        listen('cause', () =>
+          after(1, () => {
+            trigger('effect');
+          })
+        );
+        trigger('cause');
+        expect(seen).to.eql([{ type: 'cause' }]);
+        await delay(2);
+        expect(seen).to.eql([{ type: 'cause' }, { type: 'effect' }]);
+      }
+    );
 
-    it('can trigger `next` events via config', async function() {
-      const seen = eventsMatching(true, this);
+    it$('can trigger `next` events via config', async seen => {
       listen('cause', () => after(1, () => '⚡️'), {
         trigger: { next: 'effect' },
       });
@@ -645,22 +647,22 @@ describe('Sequences of Methods', () => {
       ]);
     });
 
-    it('can trigger `error` events when it dies via config', async function() {
-      const seen = eventsMatching(true, this);
+    it$('can trigger `error` events when it dies via config', seen => {
       listen('cause', throwsError, { trigger: { error: 'cause/error' } });
       trigger('cause');
-      trigger('cause');
+      expect(seen.length).to.equal(2);
       expect(seen[0]).to.eql({ type: 'cause' });
       expect(seen[1].type).to.eq('cause/error');
       expect(seen[1].payload).to.be.instanceOf(Error);
+
+      trigger('cause');
       expect(seen[2]).to.eql({ type: 'cause' });
 
       // no more errors since the listener was still unsubscribed
       expect(seen).to.have.length(3);
     });
 
-    it('can trigger `complete` events via config', async function() {
-      const seen = eventsMatching(true, this);
+    it$('can trigger `complete` events via config', seen => {
       listen('cause', () => of(2.718), {
         trigger: { next: 'effect', complete: 'cause/complete' },
       });
@@ -673,8 +675,7 @@ describe('Sequences of Methods', () => {
       ]);
     });
 
-    it('can trigger events directly via config', async function() {
-      const seen = eventsMatching(true, this);
+    it$('can trigger events directly via config', seen => {
       listen('cause', () => of({ type: 'constant/e', value: 2.71828 }), {
         trigger: true,
       });
@@ -688,8 +689,7 @@ describe('Sequences of Methods', () => {
   });
 
   describe('#listen, #listen, #trigger', () => {
-    it('errors in one listener dont affect the others', function() {
-      const seen = eventsMatching(true, this);
+    it$('errors in one listener dont affect the others', seen => {
       listen(true, throwsError);
       listen(true, () => {
         callCount++;
@@ -701,8 +701,7 @@ describe('Sequences of Methods', () => {
       expect(callCount).to.equal(3);
     });
 
-    it('runs listeners concurrently', async function() {
-      const seen = eventsMatching(true, this);
+    it$('runs listeners concurrently', async seen => {
       listen('tick/start', threeTicksTriggered(1, 3, 'tick'));
       listen('tick/start', threeTicksTriggered(1, 3, 'tock'));
 
@@ -721,8 +720,7 @@ describe('Sequences of Methods', () => {
   });
 
   describe('Concurrency Modes: #listen, #trigger, #trigger', () => {
-    it('ignore (mute/exhaustMap)', async function() {
-      const seen = eventsMatching(true, this);
+    it$('ignore (mute/exhaustMap)', async seen => {
       listen('tick/start', ({ payload }) => threeTicksTriggered(payload, 3)(), {
         mode: ignore,
       });
@@ -740,8 +738,7 @@ describe('Sequences of Methods', () => {
       ]);
     });
 
-    it('toggle (toggle/toggleMap)', async function() {
-      const seen = eventsMatching(true, this);
+    it$('toggle (toggle/toggleMap)', async seen => {
       listen(
         'tick/start',
         ({ payload }) => {
@@ -774,8 +771,7 @@ describe('Sequences of Methods', () => {
       ]);
     });
 
-    it('replace (cutoff/switchMap', async function() {
-      const seen = eventsMatching(true, this);
+    it$('replace (cutoff/switchMap', async seen => {
       listen('tick/start', ({ payload }) => threeTicksTriggered(payload, 3)(), {
         mode: replace,
       });
@@ -798,8 +794,7 @@ describe('Sequences of Methods', () => {
       ]);
     });
 
-    it('start (parallel/mergeMap)', async function() {
-      const seen = eventsMatching(true, this);
+    it$('start (parallel/mergeMap)', async seen => {
       listen('tick/start', ({ payload }) => threeTicksTriggered(payload, 3)(), {
         mode: parallel,
       });
@@ -820,8 +815,7 @@ describe('Sequences of Methods', () => {
       ]);
     });
 
-    it('enqueue (serial/concatMap)', async function() {
-      const seen = eventsMatching(true, this);
+    it$('enqueue (serial/concatMap)', async seen => {
       listen('tick/start', ({ payload }) => threeTicksTriggered(payload, 3)(), {
         mode: serial,
       });
@@ -844,8 +838,7 @@ describe('Sequences of Methods', () => {
   });
 
   describe('#listen, #trigger, #listen.unsubscribe', () => {
-    it('cancels in-flight listeners', async function() {
-      const seen = eventsMatching(true, this);
+    it$('cancels in-flight listeners', async seen => {
       const sub = listen('cause', () =>
         after(1, () => {
           trigger('effect');

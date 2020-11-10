@@ -168,6 +168,10 @@ export class Channel {
     resultObs.toPromise = function() {
       return resultObs.pipe(first()).toPromise();
     };
+    // @ts-ignore
+    resultObs.then = function(resolve, reject) {
+      return resultObs.toPromise().then(resolve, reject);
+    };
 
     return resultObs;
   }
