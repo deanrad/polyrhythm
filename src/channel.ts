@@ -7,6 +7,7 @@ import {
   concat,
   defer,
 } from 'rxjs';
+import isMatch from 'lodash.ismatch';
 import { filter as _filter, tap, takeUntil, first, map } from 'rxjs/operators';
 import { mergeMap, concatMap, exhaustMap, switchMap } from 'rxjs/operators';
 import { toggleMap } from './toggleMap';
@@ -158,9 +159,15 @@ export class Channel {
     return event;
   }
 
-  public query<T extends Event>(eventMatcher: EventMatcher): Observable<T> {
+  /**
+   * Provides an Observable of matching events from the channel.
+   */
+  public query<T extends Event>(
+    eventMatcher: EventMatcher,
+    payloadMatcher?: Object
+  ): Observable<T> {
     const resultObs = this.channel.asObservable().pipe(
-      _filter(getEventPredicate(eventMatcher)),
+      _filter(getEventPredicate(eventMatcher, payloadMatcher)),
       map(e => e as T)
     );
 
@@ -326,19 +333,30 @@ function isTestMode() {
   return process?.env?.NODE_ENV === 'test';
 }
 
-function getEventPredicate(eventMatcher: EventMatcher) {
+function getEventPredicate(
+  eventMatcher: EventMatcher,
+  payloadMatcher?: Object
+) {
   let predicate: (event: Event) => boolean;
 
   if (eventMatcher instanceof RegExp) {
-    predicate = (event: Event) => eventMatcher.test(event.type);
+    predicate = (event: Event) =>
+      eventMatcher.test(event.type) &&
+      (!payloadMatcher || isMatch(event.payload, payloadMatcher));
   } else if (eventMatcher instanceof Function) {
     predicate = eventMatcher;
   } else if (typeof eventMatcher === 'boolean') {
     predicate = () => eventMatcher;
+  } else if (typeof eventMatcher === 'object') {
+    predicate = (event: Event) => isMatch(event, eventMatcher);
   } else if (eventMatcher.constructor === Array) {
-    predicate = (event: Event) => eventMatcher.includes(event.type);
+    predicate = (event: Event) =>
+      eventMatcher.includes(event.type) &&
+      (!payloadMatcher || isMatch(event.payload, payloadMatcher));
   } else {
-    predicate = (event: Event) => eventMatcher === event.type;
+    predicate = (event: Event) =>
+      eventMatcher === event.type &&
+      (!payloadMatcher || isMatch(event.payload, payloadMatcher));
   }
   return predicate;
 }

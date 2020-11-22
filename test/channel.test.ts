@@ -184,7 +184,8 @@ describe('Sequences of Methods', () => {
       });
     });
 
-    it('can be consumed as an async iterator', async () => {
+    // Flaky since around 1.1.3
+    xit('can be consumed as an async iterator', async () => {
       const seen = [];
       // If we dont force the query to complete, JS will never run
       // code after the for-await loop
