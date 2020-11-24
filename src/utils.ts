@@ -3,6 +3,7 @@ import { map } from 'rxjs/operators';
 import { query } from './channel';
 export { concat } from 'rxjs';
 export { map, tap, scan } from 'rxjs/operators';
+import { query } from './channel';
 
 /**
  * Returns a random hex string, like a Git SHA. Not guaranteed to
@@ -86,12 +87,18 @@ export function macroflush(): Promise<number> {
   });
 }
 
+<<<<<<< HEAD
 /** Decorates a function so that its argument is the mutable array
  * of all events seen during its run. Useful for testing:
  *
  * it('does awesome', captureEvents(async seen => {
  *  trigger('foo)
  *  expect(seen).toEqual([{type: 'foo'}])
+=======
+/** For testing, wraps your test. Currently only from the default channel
+ * it('does awesome', captureEvents(seen => {
+ *
+>>>>>>> e12535a... WIP
  * }));
  */
 export function captureEvents<T>(testFn: (arg: T[]) => void | Promise<any>) {
