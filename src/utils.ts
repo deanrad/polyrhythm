@@ -1,7 +1,8 @@
-import { Subscribable, of, NEVER, timer, Observable } from 'rxjs';
+import { of, NEVER, timer, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 export { concat } from 'rxjs';
 export { map, tap, scan } from 'rxjs/operators';
+import { query } from './channel';
 
 /**
  * Returns a random hex string, like a Git SHA. Not guaranteed to
@@ -14,9 +15,7 @@ export const randomId = (length: number = 7) => {
 };
 
 export interface AwaitableObservable<T>
-  extends PromiseLike<T>,
-    Subscribable<T> {
-  toPromise(): PromiseLike<T>;
+  extends PromiseLike<T>, Observable<T> {
 }
 
 /**
@@ -87,4 +86,23 @@ export function macroflush(): Promise<number> {
   return new Promise(resolve => {
     return setTimeout(() => resolve(getTimestamp()), 0);
   });
+}
+
+/** For testing, wraps your test. Currently only from the default channel
+ * it('does awesome', captureEvents(seen => {
+ *
+ * }));
+ */
+export function captureEvents<T>(testFn: (arg: T[]) => void | Promise<any>) {
+  return function() {
+    const seen = new Array<T>();
+    // @ts-ignore
+    const sub = query(true).subscribe(event => seen.push(event));
+    const result: any = testFn(seen);
+    if (result && result.then) {
+      return result.finally(() => sub.unsubscribe());
+    }
+    sub.unsubscribe();
+    return result;
+  };
 }

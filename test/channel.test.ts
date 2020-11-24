@@ -25,7 +25,7 @@ import {
   ConcurrencyMode,
   Filter,
 } from '../src/channel';
-import { randomId, after } from '../src/utils';
+import { randomId, after, captureEvents } from '../src/utils';
 
 function errorsOn(
   channel: Channel,
@@ -39,22 +39,9 @@ function errorsOn(
 }
 
 function it$(name: string, fn: (arg: Event[]) => void | Promise<any>) {
-  it(name, E$(fn));
+  it(name, captureEvents(fn));
 }
 
-function E$<T>(testFn: (arg: T[]) => void | Promise<any>) {
-  return function() {
-    const seen = new Array<T>();
-    // @ts-ignore
-    const sub = query(true).subscribe(event => seen.push(event));
-    const result: any = testFn(seen);
-    if (result && result.then) {
-      return result.finally(() => sub.unsubscribe());
-    }
-    sub.unsubscribe();
-    return result;
-  };
-}
 
 require('clear')();
 
