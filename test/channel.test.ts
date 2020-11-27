@@ -42,7 +42,6 @@ function it$(name: string, fn: (arg: Event[]) => void | Promise<any>) {
   it(name, captureEvents(fn));
 }
 
-
 require('clear')();
 
 describe('Sequences of Methods', () => {

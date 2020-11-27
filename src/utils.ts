@@ -1,8 +1,8 @@
 import { of, NEVER, timer, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { query } from './channel';
 export { concat } from 'rxjs';
 export { map, tap, scan } from 'rxjs/operators';
-import { query } from './channel';
 
 /**
  * Returns a random hex string, like a Git SHA. Not guaranteed to
@@ -14,9 +14,7 @@ export const randomId = (length: number = 7) => {
     .padStart(length, '0');
 };
 
-export interface AwaitableObservable<T>
-  extends PromiseLike<T>, Observable<T> {
-}
+export interface AwaitableObservable<T> extends PromiseLike<T>, Observable<T> {}
 
 /**
  * Returns an Observable of the value, or result of the function call, after
@@ -88,9 +86,12 @@ export function macroflush(): Promise<number> {
   });
 }
 
-/** For testing, wraps your test. Currently only from the default channel
- * it('does awesome', captureEvents(seen => {
+/** Decorates a function so that its argument is the mutable array
+ * of all events seen during its run. Useful for testing:
  *
+ * it('does awesome', captureEvents(async seen => {
+ *  trigger('foo)
+ *  expect(seen).toEqual([{type: 'foo'}])
  * }));
  */
 export function captureEvents<T>(testFn: (arg: T[]) => void | Promise<any>) {
