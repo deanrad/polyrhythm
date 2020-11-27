@@ -12,7 +12,8 @@
   ],
   "scripts": {
     "start": "tsdx watch",
-    "build": "tsdx build && size-limit",
+    "size": "size-limit",
+    "build": "tsdx build && npm run size",
     "test": "NODE_ENV=test ts-mocha -r esm -p tsconfig.json test/*test*.ts ",
     "test:watch": "NODE_ENV=test yarn test --watch --watch-files 'test/*test*.ts' --watch-files 'src/*.ts'",
     "test:perf": "ts-mocha -r esm -p tsconfig.json test/perf*.ts ",

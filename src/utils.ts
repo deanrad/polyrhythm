@@ -3,7 +3,6 @@ import { map } from 'rxjs/operators';
 import { query } from './channel';
 export { concat } from 'rxjs';
 export { map, tap, scan } from 'rxjs/operators';
-import { query } from './channel';
 
 /**
  * Returns a random hex string, like a Git SHA. Not guaranteed to
@@ -87,7 +86,6 @@ export function macroflush(): Promise<number> {
   });
 }
 
-<<<<<<< HEAD
 /** Decorates a function so that its argument is the mutable array
  * of all events seen during its run. Useful for testing:
  *
@@ -99,6 +97,14 @@ export function macroflush(): Promise<number> {
  * it('does awesome', captureEvents(seen => {
  *
 >>>>>>> e12535a... WIP
+=======
+/** Decorates a function so that its argument is the mutable array
+ * of all events seen during its run. Useful for testing:
+ *
+ * it('does awesome', captureEvents(async seen => {
+ *  trigger('foo)
+ *  expect(seen).toEqual([{type: 'foo'}])
+>>>>>>> 481c16a... 1.1.5 export captureEvents testing helper. TS fix for issue #22
  * }));
  */
 export function captureEvents<T>(testFn: (arg: T[]) => void | Promise<any>) {
