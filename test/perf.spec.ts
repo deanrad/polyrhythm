@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { filter, on, trigger, reset } from '../src/channel';
+import { filter, listen, trigger, reset } from '../src/channel';
 import { after } from '../src/utils';
 import { range } from 'rxjs';
 import { expect } from 'chai';
@@ -11,19 +11,19 @@ describe('Performance Testing', () => {
     const threshold1s = 10000;
     const timeScale = 0.1;
     const thresholdTime = 1000; // 1 second
-    it(`Can process ${threshold1s} per second with no filters or handlers`, () => {
+    it(`Can process ${threshold1s} per second with no filters or listeners`, () => {
       expectToCompleteWithin(thresholdTime * timeScale, () => {
         range(0, threshold1s * timeScale).subscribe(i => {
           trigger('perf/test', { i });
         });
       });
     });
-    it(`Can process ${threshold1s} per second with a filter and an sync handler`, () => {
+    it(`Can process ${threshold1s} per second with a filter and an sync listener`, () => {
       let counter = 0;
       filter(true, () => {
         counter += 1;
       });
-      on(true, () => {
+      listen(true, () => {
         counter += 1;
       });
       expectToCompleteWithin(thresholdTime * timeScale, () => {
@@ -37,12 +37,12 @@ describe('Performance Testing', () => {
         });
       });
     });
-    it(`Can process ${threshold1s} per second with a filter and an async handler`, () => {
+    it(`Can process ${threshold1s} per second with a filter and an async listener`, () => {
       let counter = 0;
       filter(true, () => {
         counter += 1;
       });
-      on(true, () =>
+      listen(true, () =>
         after(100, () => {
           counter += 1;
         })
@@ -76,11 +76,11 @@ describe('Performance Testing', () => {
       });
     });
 
-    const manyHandlers = 40;
-    it(`Can process ${processNum} per second with ${manyHandlers} handlers`, () => {
+    const manylisteners = 40;
+    it(`Can process ${processNum} per second with ${manylisteners} listeners`, () => {
       let counter = 0;
-      range(0, manyHandlers + 1).subscribe(() => {
-        on(true, () => {
+      range(0, manylisteners + 1).subscribe(() => {
+        listen(true, () => {
           counter += 1;
         });
       });
