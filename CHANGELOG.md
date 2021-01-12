@@ -3,6 +3,7 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [1.2 Smaller Bundle, More Robust](#12-smaller-bundle-more-robust)
 - [1.1.3 await query(), and succint tests](#113-await-query-and-succint-tests)
 - [1.1.2 Support generators as listeners](#112-support-generators-as-listeners)
 - [1.1.1 Add optional TypeScript typings](#111-add-optional-typescript-typings)
@@ -14,6 +15,19 @@
 - [1.0.6 Handy RxJS exports](#106-handy-rxjs-exports)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+#### 1.2 Smaller Bundle, More Robust
+
+- Bundle size 2.23Kb (Down from 2.37Kb)
+- `after` is type-safe!
+- `channel.listen({ takeUntil: matcher })`: Now adds a takeUntil(query(matcher)) to each Observable returned from the listener.
+
+Possibly breaking:
+
+- `channel.trigger`: The 3rd argument resultSpec was removed
+- `channel.listen({ trigger: { error }})`: Now rescues the error and keeps the listener alive.
+
+Includes the `combineWithConcurrency` export to allow ConcurrencyMode/string declarative style Observable-combination (without using the less-mnemonic operators).
 
 #### 1.1.3 await query(), and succint tests
 

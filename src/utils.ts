@@ -1,6 +1,24 @@
-import { of, NEVER, timer, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { query } from './channel';
+import {
+  of,
+  from,
+  defer,
+  NEVER,
+  timer,
+  Observable,
+  throwError,
+  empty,
+  concat,
+} from 'rxjs';
+import {
+  map,
+  mergeMap,
+  concatMap,
+  exhaustMap,
+  switchMap,
+} from 'rxjs/operators';
+import { AwaitableObservable, ConcurrencyMode, Listener, Thunk } from './types';
+import { toggleMap } from './toggleMap';
+export { toggleMap } from './toggleMap';
 export { concat } from 'rxjs';
 export { map, tap, scan } from 'rxjs/operators';
 
@@ -13,8 +31,6 @@ export const randomId = (length: number = 7) => {
     .toString(16)
     .padStart(length, '0');
 };
-
-export interface AwaitableObservable<T> extends PromiseLike<T>, Observable<T> {}
 
 /**
  * Returns an Observable of the value, or result of the function call, after
@@ -32,10 +48,14 @@ export interface AwaitableObservable<T> extends PromiseLike<T>, Observable<T> {}
  * after(Infinity, () => new Date()).toPromise()
  * ```
  */
-export function after<T>(ms: number, objOrFn?: any): AwaitableObservable<T> {
+export function after<T>(
+  ms: number,
+  objOrFn?: T | Thunk<T>
+): AwaitableObservable<T> {
   const delay = ms <= 0 ? of(0) : ms === Infinity ? NEVER : timer(ms);
 
   const resultObs: Observable<T> = delay.pipe(
+    // @ts-ignore
     map(() => (typeof objOrFn === 'function' ? objOrFn() : objOrFn))
   );
 
@@ -93,11 +113,6 @@ export function macroflush(): Promise<number> {
  *  trigger('foo)
  *  expect(seen).toEqual([{type: 'foo'}])
 =======
-/** For testing, wraps your test. Currently only from the default channel
- * it('does awesome', captureEvents(seen => {
- *
->>>>>>> e12535a... WIP
-=======
 /** Decorates a function so that its argument is the mutable array
  * of all events seen during its run. Useful for testing:
  *
@@ -106,17 +121,81 @@ export function macroflush(): Promise<number> {
  *  expect(seen).toEqual([{type: 'foo'}])
 >>>>>>> 481c16a... 1.1.5 export captureEvents testing helper. TS fix for issue #22
  * }));
+=======
+/** Creates a derived Observable, running the listener in the given ConcurrencyMode
+ * turning sync errors into Observable error notifications
+>>>>>>> 1c792da... 1.2.0 Smaller Bundle, More Robust, Type-safe
  */
-export function captureEvents<T>(testFn: (arg: T[]) => void | Promise<any>) {
-  return function() {
-    const seen = new Array<T>();
-    // @ts-ignore
-    const sub = query(true).subscribe(event => seen.push(event));
-    const result: any = testFn(seen);
-    if (result && result.then) {
-      return result.finally(() => sub.unsubscribe());
+export function combineWithConcurrency<T, U>(
+  o: Observable<T>,
+  listener: Listener<T, U>,
+  mode: ConcurrencyMode,
+  individualPipes = [],
+  individualEnder = empty()
+) {
+  const combine = operatorForMode(mode);
+  const mappedEvents = (e: T): Observable<U> => {
+    try {
+      const _results = listener(e);
+      // @ts-ignore
+      return concat(
+        // @ts-ignore
+        toObservable<U>(_results).pipe(...individualPipes),
+        individualEnder
+      );
+    } catch (ex) {
+      return throwError(ex);
     }
-    sub.unsubscribe();
-    return result;
   };
+  const combined = o.pipe(
+    // @ts-ignore
+    combine(mappedEvents)
+  );
+  return combined;
+}
+
+/** Controls what types can be returned from an `on` handler:
+    Primitive types: `of()`
+    Promises: `from()`
+    Observables: pass-through
+*/
+function toObservable<T>(_results: any): Observable<T> {
+  if (typeof _results === 'undefined') return empty();
+
+  if (typeof _results === 'function') {
+    return _results.length === 1 ? new Observable(_results) : defer(_results);
+  }
+
+  // An Observable is preferred
+  if (_results.subscribe) return _results;
+
+  // A Subscrition is ok - can be canceled but not awaited
+  if (_results.unsubscribe)
+    return new Observable(() => {
+      // an Observable's return value is its cleanup function
+      return () => _results.unsubscribe();
+    });
+
+  // A Promise or generator is acceptable
+  if (_results.then || typeof _results[Symbol.iterator] === 'function')
+    return from(_results as Promise<T>);
+
+  // otherwise we convert it to a single-item Observable
+  return of(_results);
+}
+
+export function operatorForMode(mode: ConcurrencyMode = ConcurrencyMode.parallel) {
+  switch (mode) {
+    case ConcurrencyMode.ignore:
+      return exhaustMap;
+    case ConcurrencyMode.parallel:
+      return mergeMap;
+    case ConcurrencyMode.serial:
+      return concatMap;
+    case ConcurrencyMode.toggle:
+      return toggleMap;
+    case ConcurrencyMode.replace:
+    default:
+      return switchMap;
+  }
 }
