@@ -99,6 +99,7 @@ export interface ListenerConfig {
     | 'toggle';
   /** A declarative way to map the Observable returned from the listener onto new triggered events */
   trigger?: TriggerConfig | true;
+  takeUntil?: EventMatcher;
 }
 
 export interface TriggererConfig {
@@ -215,7 +216,11 @@ export class Channel {
       try {
         // @ts-ignore
         const userReturned = toObservable(listener(event));
-        const part = concat(userReturned, applyCompleteTrigger());
+        const base = concat(userReturned, applyCompleteTrigger());
+        const part = config.takeUntil
+          ? base.pipe(takeUntil(this.query(config.takeUntil)))
+          : base;
+
         parts.next(part);
       } catch (e) {
         this.errors.next(e);

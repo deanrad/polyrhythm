@@ -673,6 +673,21 @@ describe('Sequences of Methods', () => {
         { type: 'constant/e', value: 2.71828 },
       ]);
     });
+
+    it(
+      'can terminate a listener via takeUntil',
+      captureEvents(async seen => {
+        listen('start', () => after(1, () => trigger('⚡️')), {
+          takeUntil: 'end',
+        });
+
+        trigger('start');
+        expect(seen.map(e => e.type)).to.eql(['start']);
+        trigger('end');
+        await after(1);
+        expect(seen.map(e => e.type)).to.eql(['start', 'end']);
+      })
+    );
   });
 
   describe('#listen, #listen, #trigger', () => {

@@ -15,6 +15,9 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+#### 1.1.6 takeUntil
+
+`channel.listen({ takeUntil: pattern })`: Now adds a takeUntil(query(pattern)) to each Observable returned from the listener to allow for declarative cancelation.
 #### 1.1.3 await query(), and succint tests
 
 Similar to `after`, there is a `then` method exposed on the return value from `query()`, so it is await-able without explicitly calling `toPromise` on it. Also, found a really nice testing pattern that will work as well in a `this`-less test framework like Jest, as it does in mocha, and also has fewer moving parts overall.
