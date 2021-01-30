@@ -682,9 +682,11 @@ describe('Sequences of Methods', () => {
         });
 
         trigger('start');
+        // @ts-ignore
         expect(seen.map(e => e.type)).to.eql(['start']);
         trigger('end');
         await after(1);
+        // @ts-ignore
         expect(seen.map(e => e.type)).to.eql(['start', 'end']);
       })
     );
