@@ -102,7 +102,7 @@ export interface ListenerConfig {
     | 'toggle';
   /** A declarative way to map the Observable returned from the listener onto new triggered events */
   trigger?: TriggerConfig | true;
-  takeUntil?: EventMatcher
+  takeUntil?: EventMatcher;
 }
 
 export interface Thunk<T> {
