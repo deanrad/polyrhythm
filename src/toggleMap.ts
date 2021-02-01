@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, OperatorFunction } from 'rxjs';
 
 export interface Spawner {
   (event: Event): Observable<any>;
@@ -17,10 +17,10 @@ export const toggleMap = (
     return new Observable(observer => {
       let innerSub: Subscription;
       return source.subscribe({
-        next(outer) {
+        next(trigger) {
           if (!innerSub || innerSub.closed) {
-            innerSub = spawner(outer).subscribe(
-              inner => observer.next(mapper(outer, inner)),
+            innerSub = spawner(trigger).subscribe(
+              inner => observer.next(mapper(trigger, inner)),
               e => observer.error(e)
             );
           } else {

@@ -219,7 +219,7 @@ function getEventPredicate(
     predicate = (event: Event) => isMatch(event, eventMatcher);
   } else if (eventMatcher.constructor === Array) {
     predicate = (event: Event) =>
-      //@ts-ignore
+      // @ts-ignore
       eventMatcher.includes(event.type) &&
       (!payloadMatcher || isMatch(event.payload, payloadMatcher));
   } else {

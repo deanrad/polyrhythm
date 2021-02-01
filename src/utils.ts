@@ -167,7 +167,9 @@ function toObservable<T>(_results: any): Observable<T> {
   return of(_results);
 }
 
-export function operatorForMode(mode: ConcurrencyMode = ConcurrencyMode.parallel) {
+export function operatorForMode(
+  mode: ConcurrencyMode = ConcurrencyMode.parallel
+) {
   switch (mode) {
     case ConcurrencyMode.ignore:
       return exhaustMap;
