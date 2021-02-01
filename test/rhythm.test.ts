@@ -4,15 +4,9 @@ import sinon from 'sinon';
 import { fakeSchedulers } from 'rxjs-marbles/mocha';
 import { channel } from '../src/channel';
 import { after } from '../src/utils';
+import { Event } from '../src/types';
 
 const mockUser = { id: 42, name: 'Joe' };
-const mockApi = {
-  fetchUser() {
-    return Promise.resolve(mockUser);
-  },
-};
-
-const api = mockApi;
 
 let DELAY = 5000;
 

@@ -3,14 +3,12 @@ import { describe, it } from 'mocha';
 import {
   Observable,
   Subscription,
-  BehaviorSubject,
   range,
   asyncScheduler,
   throwError,
   of,
 } from 'rxjs';
-import { eachValueFrom } from 'rxjs-for-await';
-import { scan, tap, take } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import {
   trigger,
   query,
@@ -18,25 +16,11 @@ import {
   listen,
   on,
   spy,
+  captureEvents,
   reset,
-  channel,
-  Channel,
-  Event,
-  ConcurrencyMode,
-  Filter,
 } from '../src/channel';
-import { randomId, after, captureEvents } from '../src/utils';
-
-function errorsOn(
-  channel: Channel,
-  example: any
-): BehaviorSubject<Array<string | Error>> {
-  const seen = new BehaviorSubject<Array<string | Error>>([]);
-  example.subscription = channel.errors
-    .pipe(scan((a, e) => [...a, e], new Array<string | Error>()))
-    .subscribe(seen);
-  return seen;
-}
+import { Event, ConcurrencyMode, Filter } from '../src/types';
+import { randomId, after } from '../src/utils';
 
 function it$(name: string, fn: (arg: Event[]) => void | Promise<any>) {
   it(name, captureEvents(fn));
@@ -44,11 +28,11 @@ function it$(name: string, fn: (arg: Event[]) => void | Promise<any>) {
 
 require('clear')();
 
-describe('Sequences of Methods', () => {
+describe('Channel Behavior', () => {
   let callCount = 0;
   const thrower: Filter<Event> = (e: Event) => {
     callCount++;
-    takesException(e);
+    syncThrow(e);
   };
 
   const ill = () => {
@@ -88,57 +72,6 @@ describe('Sequences of Methods', () => {
         expect(result).to.eql(expected);
       });
     });
-
-    describe('with 3rd argument resultSpec', () => {
-      it('adds a promise for the resulting event to the returned event', async () => {
-        const noTime = 0;
-        listen('counter/go', ({ payload }) => after(noTime, { ...payload }), {
-          trigger: { next: 'counter/tick' },
-        });
-
-        const event1 = trigger(
-          'counter/go',
-          { order: 1 },
-          { result: 'counter/tick' }
-        );
-        const event2 = trigger(
-          'counter/go',
-          { order: 2 },
-          { result: 'counter/tick' }
-        );
-
-        // NOTE: In general async listeners will not return the events that
-        // corrspond to their triggering events. They'll see the first matching event
-        const tick1 = await event1.result;
-        const tick2 = await event2.result;
-        expect(tick1.payload).to.eql({ order: 1 });
-        expect(tick2.payload).to.eql({ order: 2 });
-      });
-      it('adds a promise for the next matching event to the returned event', async () => {
-        const delay = 100;
-        listen('counter/go', ({ payload }) => after(delay, { ...payload }), {
-          trigger: { next: 'counter/tick' },
-        });
-
-        const event1 = trigger(
-          'counter/go',
-          { order: 1 },
-          { result: 'counter/tick' }
-        );
-        const event2 = trigger(
-          'counter/go',
-          { order: 2 },
-          { result: 'counter/tick' }
-        );
-
-        // NOTE: In general async listeners will not return the events that
-        // corrspond to their triggering events. They'll see the first matching event
-        const tick1 = await event1.result;
-        const tick2 = await event2.result;
-        expect(tick1.payload).to.eql({ order: 1 });
-        expect(tick2.payload).to.eql({ order: 1 });
-      });
-    });
   });
 
   describe('#query', () => {
@@ -150,14 +83,17 @@ describe('Sequences of Methods', () => {
 
     describe('.toPromise()', () => {
       it('can be awaited; reply in same callstack', async () => {
-        listen('data/query', () => trigger('data/result', 2.5));
+        listen('data/query', () => {
+          trigger('data/result', 2.5);
+        });
 
         // its important the query for the result be subscribed via toPromise()
         // before the trigger occurs, to acomodate the case of the same callstack
         // Wouldn't work for a sync-triggering listener:
         // const { payload } = trigger('data/query') && (await query('data/result').toPromise());
         const resultEvent = query('data/result').toPromise();
-        const { payload } = trigger('data/query') && (await resultEvent);
+        trigger('data/query');
+        const { payload } = await resultEvent;
         expect(payload).to.equal(2.5);
       });
 
@@ -168,22 +104,6 @@ describe('Sequences of Methods', () => {
         const { payload } = trigger('auth/login') && (await tokenEvent);
         expect(payload).to.equal(2.7);
       });
-    });
-
-    // Flaky since around 1.1.3
-    xit('can be consumed as an async iterator', async () => {
-      const seen = [];
-      // If we dont force the query to complete, JS will never run
-      // code after the for-await loop
-      const obs = query(['foo', 'bar']).pipe(take(2));
-      const asyncIterator = eachValueFrom(obs);
-
-      after(1, () => trigger('foo')).subscribe();
-      after(2, () => trigger('bar')).subscribe();
-      for await (let x of asyncIterator) {
-        seen.push(x);
-      }
-      expect(seen).to.eql([{ type: 'foo' }, { type: 'bar' }]);
     });
 
     describe('inside of a #listen', () => {
@@ -202,135 +122,87 @@ describe('Sequences of Methods', () => {
   });
 
   describe('#filter', () => {
+    describe('Arguments', () => {
+      function simpleTest() {
+        filter('foo', () => {
+          callCount++;
+        });
+        trigger('foo');
+        expect(callCount).to.equal(1);
+      }
+
+      describe('eventMatcher', () => {
+        it('defines events the filter will run upon', simpleTest);
+      });
+      describe('filter function', () => {
+        it('defines the function to be run on matching events', simpleTest);
+      });
+    });
+
     it('returns a subscription', () => {
       const result = filter(true, () => null);
-
       expect(result).to.be.instanceOf(Subscription);
+      expect(result).to.haveOwnProperty('closed', false);
     });
-    it('Should not be given a function which returns a Promise');
+    it('is cancelable', () => {
+      const subs = filter(true, () => {
+        callCount++;
+      });
+      subs.unsubscribe();
+      trigger('foo');
+      expect(callCount).to.equal(0);
+    });
   });
 
   describe('#listen', () => {
+    function simpleTest() {
+      listen('foo', () => {
+        callCount++;
+      });
+      trigger('foo');
+      trigger('not-foo');
+      expect(callCount).to.equal(1);
+    }
     describe('Arguments', () => {
-      describe('An Event Pattern', () => {
-        it('what events the listener will run upon');
+      describe('eventMatcher', () => {
+        it('defines the events the listener will run upon', simpleTest);
       });
 
-      describe('A Listener  - A function to be run on matching events', () => {
-        it('May return nothing or a sync value');
-        it('May return an Observable');
-        it('May return a Promise');
-        describe('May return a Subscription', () => {
-          it$('replace: will unsubscribe the previous', async seen => {
-            // listener returning a subscription
-            listen(
-              event.type,
-              () => new Subscription(() => trigger('unsubscribe')),
-              { mode: ConcurrencyMode.replace }
-            );
-
-            triggerEvent();
-            triggerEvent();
-            triggerEvent();
-
-            const triggered = seen.map(e => e.type);
-            expect(triggered).to.eql([
-              'anytype',
-              'anytype',
-              'unsubscribe',
-              'anytype',
-              'unsubscribe',
-            ]);
+      describe('listener function', () => {
+        it('defines the function to be run on matching events', simpleTest);
+        it('recieves a frozen event', () => {
+          listen('foo', e => {
+            expect(Object.isFrozen(e)).to.equal(true);
           });
-          it$('toggle: will unsubscribe the previous', async seen => {
-            listen(
-              event.type,
-              () => new Subscription(() => trigger('unsubscribe')),
-              { mode: ConcurrencyMode.toggle }
-            );
+          trigger('foo');
+        });
 
-            triggerEvent();
-            triggerEvent();
-            triggerEvent();
-
-            const triggered = seen.map(e => e.type);
-            expect(triggered).to.eql([
-              'anytype',
-              'anytype',
-              'unsubscribe',
-              'anytype',
-            ]);
-          });
-          it$(
-            'parallel, serial, ignore: will not unsubscribe the previous',
-            async seen => {
-              listen(
-                event.type,
-                () => new Subscription(() => trigger('unsubscribe')),
-                { mode: ConcurrencyMode.parallel }
-              );
-
-              triggerEvent();
-              triggerEvent();
-              triggerEvent();
-
-              const triggered = seen.map(e => e.type);
-              expect(triggered).to.eql(['anytype', 'anytype', 'anytype']);
-            }
+        it('listener may return a function to defer and schedule evaluation', async () => {
+          listen(
+            'known-event',
+            () =>
+              function() {
+                callCount++;
+                return delay(10);
+              },
+            { mode: 'serial' }
           );
+
+          trigger('known-event'); // listener evaluated synchronusly
+          trigger('known-event'); // listener deferred (due to the mode)
+          expect(callCount).to.equal(1);
         });
       });
 
-      describe('Config - concurrency and re-triggering', () => {
+      describe('config', () => {
         it('See #listen / #trigger specs');
       });
     });
 
     it('returns a subscription', () => {
-      const result = listen(true, () => null);
+      const result = listen(true, () => {});
 
       expect(result).to.be.instanceOf(Subscription);
-    });
-  });
-
-  describe('#spy', () => {
-    it('runs on every event', () => {
-      spy(() => callCount++);
-      trigger('foo');
-      expect(callCount).to.equal(1);
-    });
-
-    describe('When has an error', () => {
-      it('is unsubscribed', () => {
-        spy(ill);
-        trigger('foo'); // errs here
-        trigger('foo'); // not counted
-        expect(callCount).to.equal(1);
-      });
-    });
-  });
-
-  describe('#trigger, #query', () => {
-    it('does not find events triggered before the query', function() {
-      let counter = 0;
-      trigger('count/start');
-      this.subscription = query('count/start').subscribe(() => {
-        counter++;
-      });
-      trigger('count/start');
-      expect(counter).to.equal(1);
-    });
-  });
-
-  describe('#query, #trigger', () => {
-    it$('finds events triggered after the query', async seen => {
-      // trigger events
-      const event2 = { type: 'e2', payload: randomId() };
-
-      trigger(event.type, event.payload);
-      trigger(event2.type, event2.payload);
-
-      expect(seen).to.eql([event, event2]);
     });
   });
 
@@ -362,7 +234,7 @@ describe('Sequences of Methods', () => {
     });
 
     it('can throw for the triggerer', () => {
-      filter(true, takesException);
+      filter(true, syncThrow);
       expect(triggerEvent).to.throw();
     });
 
@@ -372,6 +244,30 @@ describe('Sequences of Methods', () => {
       expect(callCount).to.equal(1);
       expect(triggerEvent).to.throw();
       expect(callCount).to.equal(2);
+    });
+  });
+
+  describe('#trigger, #query', () => {
+    it('does not find events triggered before the query', function() {
+      let counter = 0;
+      trigger('count/start');
+      this.subscription = query('count/start').subscribe(() => {
+        counter++;
+      });
+      trigger('count/start');
+      expect(counter).to.equal(1);
+    });
+  });
+
+  describe('#query, #trigger', () => {
+    it$('finds events triggered after the query', async seen => {
+      // trigger events
+      const event2 = { type: 'e2', payload: randomId() };
+
+      trigger(event.type, event.payload);
+      trigger(event2.type, event2.payload);
+
+      expect(seen).to.eql([event, event2]);
     });
   });
 
@@ -444,22 +340,6 @@ describe('Sequences of Methods', () => {
         expect(callCount).to.equal(1);
       });
 
-      it('listener may return a function to defer and schedule evaluation', async () => {
-        listen(
-          'known-event',
-          () =>
-            function() {
-              callCount++;
-              return delay(10);
-            },
-          { mode: 'serial' }
-        );
-
-        trigger('known-event'); // listener evaluated synchronusly
-        trigger('known-event'); // listener deferred (due to the mode)
-        expect(callCount).to.equal(1);
-      });
-
       it$('listener may return a Promise-returning function', async seen => {
         listen(
           'known-event',
@@ -476,248 +356,172 @@ describe('Sequences of Methods', () => {
         expect(callCount).to.equal(1);
 
         await after(10);
-        expect(seen).to.eql([
-          {
-            type: 'known-event',
-          },
-          {
-            type: 'known-event',
-          },
-          {
-            payload: 1.007,
-            type: 'result',
-          },
-          {
-            payload: 1.007,
-            type: 'result',
-          },
-        ]);
-      });
-
-      it$('listener may return an ObservableFactory', async seen => {
-        listen(
+        expect(seen.map(e => e.type)).to.eql([
           'known-event',
-          () =>
-            function(notify: any) {
-              notify.next(1.2);
-            },
-          { trigger: { next: 'result' } }
-        );
-
-        trigger('known-event'); // listener evaluated synchronusly
-        trigger('known-event'); // listener deferred (due to the mode)
-
-        expect(seen).to.eql([
-          {
-            type: 'known-event',
-          },
-          {
-            payload: 1.2,
-            type: 'result',
-          },
-          {
-            type: 'known-event',
-          },
-          {
-            payload: 1.2,
-            type: 'result',
-          },
+          'known-event',
+          'result',
+          'result',
         ]);
       });
 
-      it$('listener may be a generator', async seen => {
-        expect(1).to.eql(1);
-        listen(
-          'seq',
-          function*({ payload: count }) {
-            for (let i = 1; i <= count; i++) {
-              yield i;
-            }
-          },
-          { trigger: { next: 'seq-value' } }
-        );
-        trigger('seq', 2);
+      it(
+        'can trigger `next` events via config',
+        captureEvents(async seen => {
+          listen('cause', () => after(1, () => '⚡️'), {
+            trigger: { next: 'effect' },
+          });
+          trigger('cause');
+          expect(seen).to.eql([{ type: 'cause' }]);
+          await delay(2);
+          expect(seen).to.eql([
+            { type: 'cause' },
+            { type: 'effect', payload: '⚡️' },
+          ]);
+        })
+      );
+
+      it(
+        'can trigger `next` events via config - and errors kill',
+        captureEvents(async seen => {
+          // when the 'cause' listener triggers next, it'll throw
+          filter('call-err', syncThrow);
+
+          // This listener will be brought down by the exception
+          const subs = listen('cause', () => after(1, () => '⚡️'), {
+            trigger: { next: 'call-err' },
+          });
+
+          trigger('cause');
+          await delay(2);
+
+          // Error killed it
+          expect(subs).to.have.property('closed', true);
+
+          expect(seen).to.eql([{ type: 'cause' }]);
+          trigger('cause');
+          await delay(2);
+          // No effect, no error
+          expect(seen).to.eql([{ type: 'cause' }, { type: 'cause' }]);
+        })
+      );
+      it(
+        'can terminate a listener via takeUntil',
+        captureEvents(async seen => {
+          listen(
+            'start',
+            () =>
+              new Observable(() => {
+                const subs = after(1, () => {
+                  trigger('⚡️');
+                }).subscribe();
+                return () => {
+                  trigger('unsub');
+                  subs.unsubscribe();
+                };
+              }),
+            { takeUntil: 'end' }
+          );
+
+          trigger('start');
+          // @ts-ignore
+          expect(seen.map(e => e.type)).to.eql(['start']);
+          trigger('end');
+          await after(1);
+          // @ts-ignore
+          expect(seen.map(e => e.type)).to.eql(['start', 'end', 'unsub']);
+        })
+      );
+
+      it$('can trigger `complete` events via config', seen => {
+        listen('cause', () => of(2.718), {
+          trigger: { next: 'effect', complete: 'cause/complete' },
+        });
+        trigger('cause');
+
         expect(seen).to.eql([
-          { type: 'seq', payload: 2 },
-          { type: 'seq-value', payload: 1 },
-          { type: 'seq-value', payload: 2 },
+          { type: 'cause' },
+          { type: 'effect', payload: 2.718 },
+          { type: 'cause/complete' },
         ]);
+      });
+
+      it$('can rescue `error` events via config', seen => {
+        listen('cause', throwsError, { trigger: { error: 'cause/error' } });
+        trigger('cause');
+        expect(seen.length).to.equal(2);
+        expect(seen[0]).to.eql({ type: 'cause' });
+        expect(seen[1].type).to.eq('cause/error');
+        expect(seen[1].payload).to.be.instanceOf(Error);
+
+        trigger('cause');
+        expect(seen[2]).to.eql({ type: 'cause' });
+
+        // rescued, so both causes and effects
+        expect(seen).to.have.length(4);
       });
     });
 
     describe('Error Handling', () => {
-      it('does not throw for the triggerer', () => {
-        listen(true, thrower);
-        expect(triggerEvent).not.to.throw();
-        expect(callCount).to.equal(1);
-      });
-
-      it('is removed if it throws', () => {
-        listen(true, thrower);
-        expect(triggerEvent).not.to.throw();
-        expect(callCount).to.equal(1);
-        expect(triggerEvent).not.to.throw();
-        expect(callCount).to.equal(1);
-      });
-
-      it('is removed if its Observable errors', () => {
-        listen(true, throwsError);
-        expect(triggerEvent).not.to.throw();
-        expect(callCount).to.equal(1);
-        expect(triggerEvent).not.to.throw();
-        expect(callCount).to.equal(1);
-      });
-
-      it('exposes listener exceptions on channel.errors (logs when NODE_ENV is not test)', function() {
-        let errors = errorsOn(channel, this);
-        listen(true, thrower);
-        triggerEvent();
-
-        expect(errors.value.length).to.be.greaterThan(0);
-      });
-
-      it('exposes listener errors on channel.errors (logs when NODE_ENV is not test)', function() {
-        let errors = errorsOn(channel, this);
-        listen(true, throwsError);
-        triggerEvent();
-
-        expect(errors.value.length).to.be.greaterThan(0);
-      });
-    });
-
-    it('cannot modify the event', () => {
-      listen(true, mutator);
-      const result = triggerEvent();
-      expect(result).not.to.have.property('mutantProp');
-    });
-
-    it$(
-      'can be used to trigger new events asynchronously from Promises',
-      async seen => {
-        listen('cause', () =>
-          delay(1, () => {
-            trigger('effect');
-          })
-        );
-        trigger('cause');
-        expect(seen).to.eql([{ type: 'cause' }]);
-        await query(true);
-        expect(seen).to.eql([{ type: 'cause' }, { type: 'effect' }]);
-      }
-    );
-
-    it$(
-      'can be used to trigger new events asynchronously from Observables',
-      async seen => {
-        listen('cause', () =>
-          after(1, () => {
-            trigger('effect');
-          })
-        );
-        trigger('cause');
-        expect(seen).to.eql([{ type: 'cause' }]);
-        await delay(2);
-        expect(seen).to.eql([{ type: 'cause' }, { type: 'effect' }]);
-      }
-    );
-
-    it$('can trigger `next` events via config', async seen => {
-      listen('cause', () => after(1, () => '⚡️'), {
-        trigger: { next: 'effect' },
-      });
-      trigger('cause');
-      expect(seen).to.eql([{ type: 'cause' }]);
-      await delay(2);
-      expect(seen).to.eql([
-        { type: 'cause' },
-        { type: 'effect', payload: '⚡️' },
-      ]);
-    });
-
-    it$('can trigger `error` events when it dies via config', seen => {
-      listen('cause', throwsError, { trigger: { error: 'cause/error' } });
-      trigger('cause');
-      expect(seen.length).to.equal(2);
-      expect(seen[0]).to.eql({ type: 'cause' });
-      expect(seen[1].type).to.eq('cause/error');
-      expect(seen[1].payload).to.be.instanceOf(Error);
-
-      trigger('cause');
-      expect(seen[2]).to.eql({ type: 'cause' });
-
-      // no more errors since the listener was still unsubscribed
-      expect(seen).to.have.length(3);
-    });
-
-    it$('can trigger `complete` events via config', seen => {
-      listen('cause', () => of(2.718), {
-        trigger: { next: 'effect', complete: 'cause/complete' },
-      });
-      trigger('cause');
-
-      expect(seen).to.eql([
-        { type: 'cause' },
-        { type: 'effect', payload: 2.718 },
-        { type: 'cause/complete' },
-      ]);
-    });
-
-    it$('can trigger events directly via config', seen => {
-      listen('cause', () => of({ type: 'constant/e', value: 2.71828 }), {
-        trigger: true,
-      });
-      trigger('cause');
-
-      expect(seen).to.eql([
-        { type: 'cause' },
-        { type: 'constant/e', value: 2.71828 },
-      ]);
-    });
-
-    it(
-      'can terminate a listener via takeUntil',
-      captureEvents(async seen => {
-        listen('start', () => after(1, () => trigger('⚡️')), {
-          takeUntil: 'end',
+      describe('Sync Errors', () => {
+        it('does not throw for the triggerer', () => {
+          listen(true, thrower);
+          expect(triggerEvent).not.to.throw();
         });
 
-        trigger('start');
-        expect(seen.map(e => e.type)).to.eql(['start']);
-        trigger('end');
-        await after(1);
-        expect(seen.map(e => e.type)).to.eql(['start', 'end']);
-      })
-    );
-  });
-
-  describe('#listen, #listen, #trigger', () => {
-    it$('errors in one listener dont affect the others', seen => {
-      listen(true, throwsError);
-      listen(true, () => {
-        callCount++;
+        it('terminates the listener subscription', () => {
+          const subs = listen(true, thrower);
+          triggerEvent();
+          expect(callCount).to.equal(1);
+          expect(subs).to.have.property('closed', true);
+          triggerEvent();
+          expect(callCount).to.equal(1);
+        });
       });
-      triggerEvent();
-      triggerEvent();
-      expect(seen).to.have.length(2);
 
-      expect(callCount).to.equal(3);
-    });
+      describe('Observable Errors', () => {
+        it('does not throw for the triggerer', () => {
+          listen(true, throwsError);
+          expect(triggerEvent).not.to.throw();
+        });
 
-    it$('runs listeners concurrently', async seen => {
-      listen('tick/start', threeTicksTriggered(1, 3, 'tick'));
-      listen('tick/start', threeTicksTriggered(1, 3, 'tock'));
+        it('terminates the listener subscription', () => {
+          const subs = listen(true, throwsError);
+          triggerEvent();
+          expect(callCount).to.equal(1);
+          expect(subs).to.have.property('closed', true);
+          triggerEvent();
+          expect(callCount).to.equal(1);
+        });
 
-      trigger('tick/start');
-      await delay(10);
-      expect(seen).to.eql([
-        { type: 'tick/start' },
-        { type: 'tick', payload: 1 },
-        { type: 'tock', payload: 1 },
-        { type: 'tick', payload: 2 },
-        { type: 'tock', payload: 2 },
-        { type: 'tick', payload: 3 },
-        { type: 'tock', payload: 3 },
-      ]);
+        it('fails on downstream filter errors', () => {
+          filter('throws-error', syncThrow);
+          let cc = 0;
+          listen('top-level', () => {
+            cc++;
+            trigger('throws-error');
+          });
+          trigger('top-level');
+          expect(cc).to.equal(1);
+          trigger('top-level');
+          expect(cc).to.equal(1);
+        });
+
+        it('survives downstream listener errors (spawned not forked)', () => {
+          const errSub = listen('throws-error', throwsError);
+          let cc = 0;
+          const spawnerSub = listen('top-level', () => {
+            cc++;
+            trigger('throws-error');
+          });
+          trigger('top-level');
+          expect(cc).to.equal(1);
+          expect(errSub).to.have.property('closed', true);
+          expect(spawnerSub).to.have.property('closed', false);
+
+          trigger('top-level');
+          expect(cc).to.equal(2);
+        });
+      });
     });
   });
 
@@ -744,7 +548,6 @@ describe('Sequences of Methods', () => {
       listen(
         'tick/start',
         ({ payload }) => {
-          trigger('tick', 'sync');
           return threeTicksTriggered(payload, 3)();
         },
         {
@@ -760,13 +563,10 @@ describe('Sequences of Methods', () => {
       await delay(10);
       expect(seen).to.eql([
         { type: 'tick/start', payload: 1 },
-        { type: 'tick', payload: 'sync' },
         // the async part was toggled off
         { type: 'tick/start', payload: 2 },
-        { type: 'tick', payload: 'sync' },
         // a new run went to completion
         { type: 'tick/start', payload: 3 },
-        { type: 'tick', payload: 'sync' },
         { type: 'tick', payload: 3 },
         { type: 'tick', payload: 4 },
         { type: 'tick', payload: 5 },
@@ -854,13 +654,58 @@ describe('Sequences of Methods', () => {
     });
   });
 
-  describe('Aliases', () => {
-    describe('#on', () => {
-      it('is an alias for #listen', () => {
-        const result = on(true, () => null);
+  describe('#spy', () => {
+    it('runs on every event', () => {
+      spy(() => callCount++);
+      trigger('foo');
+      expect(callCount).to.equal(1);
+    });
 
-        expect(result).to.be.instanceOf(Subscription);
+    describe('When has an error', () => {
+      it('is unsubscribed', () => {
+        spy(ill);
+        trigger('foo'); // errs here
+        trigger('foo'); // not counted
+        expect(callCount).to.equal(1);
       });
+    });
+  });
+
+  describe('#reset', () => {
+    let bac = 0;
+    beforeEach(() => {
+      bac = 0;
+    });
+    it('wont fire filters after reset', () => {
+      filter('beer', () => {
+        bac += 0.1;
+      });
+      reset();
+      trigger('beer');
+      expect(bac).to.equal(0);
+    });
+
+    it('wont fire listeners after reset', () => {
+      listen('beer', () => {
+        bac += 0.1;
+      });
+      reset();
+      trigger('beer');
+      expect(bac).to.equal(0);
+    });
+
+    it('terminates existing listeners', async () => {
+      const subs = listen('beer', () => {
+        return after(1, () => {
+          bac += 0.1;
+        });
+      });
+      trigger('beer');
+      reset();
+      expect(subs).to.have.property('closed', true);
+
+      await after(2);
+      expect(bac).to.equal(0);
     });
   });
 
@@ -943,7 +788,7 @@ describe('Sequences of Methods', () => {
     describe('#listen, #trigger', () => {
       it('should type it up', () => {
         const seenFooIds: string[] = [];
-        listen<FooPayloadEvent>('foo', e => {
+        listen<FooPayloadEvent, void>('foo', e => {
           // Typescript helps here
           seenFooIds.push(e.payload.fooId);
         });
@@ -953,17 +798,13 @@ describe('Sequences of Methods', () => {
         expect(seenFooIds).to.eql(['bazž']);
       });
     });
+  });
 
-    describe('#query', () => {
-      it('should type it up no matter how triggered', () => {
-        const fooIdMatches: string[] = [];
-        query<FooPayloadEvent>(true).subscribe(n => {
-          fooIdMatches.push(n.payload.fooId);
-        });
-        trigger('foo', { fooId: 'juan' });
-        trigger<FooPayload>('foo', { fooId: 'tú' });
-        trigger<FooPayloadEvent>({ type: 'foo', payload: { fooId: 'free' } });
-        expect(fooIdMatches).to.eql(['juan', 'tú', 'free']);
+  describe('Aliases', () => {
+    describe('#on', () => {
+      it('is an alias for #listen', () => {
+        const result = on(true, () => {});
+        expect(result).to.be.instanceOf(Subscription);
       });
     });
   });
@@ -976,7 +817,7 @@ const replace = ConcurrencyMode.replace;
 const parallel = ConcurrencyMode.parallel;
 const serial = ConcurrencyMode.serial;
 
-const takesException: Filter<any> = () => {
+const syncThrow: Filter<any> = () => {
   throw new Error(`Error: ${randomId()}`);
 };
 
