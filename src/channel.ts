@@ -82,7 +82,7 @@ export class Channel {
         mergeMap(e => {
           try {
             // @ts-ignore
-            trigger(userTriggers.next, e);
+            this.trigger(userTriggers.next, e);
             return empty();
           } catch (ex) {
             return throwError(new Error(MSG_LISTENER_ERROR));
@@ -97,7 +97,7 @@ export class Channel {
           e =>
             new Observable(notify => {
               // @ts-ignore
-              trigger(userTriggers.error, e);
+              this.trigger(userTriggers.error, e);
               notify.complete();
             })
         )
@@ -111,7 +111,7 @@ export class Channel {
     const individualEnder: Observable<any> = userTriggers.complete
       ? new Observable(o => {
           // @ts-ignore
-          trigger(userTriggers.complete);
+          this.trigger(userTriggers.complete);
           o.complete();
         })
       : empty();
@@ -135,13 +135,13 @@ export class Channel {
     return combined.subscribe(listenerObserver);
   }
 
-  /* Alias for listen */
+  /* An alias for listen, hat tip to JQuery. */
   public on<T extends Event, U>(
     eventMatcher: EventMatcher,
     listener: Listener<T, U>,
     config: ListenerConfig = {}
   ): Subscription {
-    return listen(eventMatcher, listener, config);
+    return this.listen(eventMatcher, listener, config);
   }
 
   /**
@@ -166,9 +166,8 @@ export class Channel {
     return resultObs;
   }
 
-  /** TODO Method doc #spy */
+  /** Runs a filter function (sync) for all events on a channel */
   public spy<T extends Event>(spyFn: Filter<T>) {
-    // return this.filter(true, spyFn);
     const sub = this.filter(true, (e: T) => {
       try {
         spyFn(e);
@@ -183,7 +182,8 @@ export class Channel {
     return sub;
   }
   /**
-   * TODO Method docs
+   * Clears all filters and listeners, and cancels any in-flight
+   * async operations by listeners.
    */
   public reset() {
     this.filters.clear();
