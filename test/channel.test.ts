@@ -9,18 +9,32 @@ import {
   of,
 } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import {
-  trigger,
-  query,
-  filter,
-  listen,
-  on,
-  spy,
-  captureEvents,
-  reset,
-} from '../src/channel';
+import { Channel } from '../src/channel';
 import { Event, ConcurrencyMode, Filter } from '../src/types';
 import { randomId, after } from '../src/utils';
+
+const channel = new Channel();
+const trigger = channel.trigger.bind(channel);
+const query = channel.query.bind(channel);
+const filter = channel.filter.bind(channel);
+const listen = channel.listen.bind(channel);
+const on = channel.on.bind(channel);
+const spy = channel.spy.bind(channel);
+const reset = channel.reset.bind(channel);
+
+function captureEvents<T>(testFn: (arg: T[]) => void | Promise<any>) {
+  return function() {
+    const seen = new Array<T>();
+    // @ts-ignore
+    const sub = channel.query(true).subscribe(event => seen.push(event));
+    const result: any = testFn(seen);
+    if (result && result.then) {
+      return result.finally(() => sub.unsubscribe());
+    }
+    sub.unsubscribe();
+    return result;
+  };
+}
 
 function it$(name: string, fn: (arg: Event[]) => void | Promise<any>) {
   it(name, captureEvents(fn));

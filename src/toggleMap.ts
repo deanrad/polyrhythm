@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Observable, Subscription, OperatorFunction } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 export interface Spawner {
   (event: Event): Observable<any>;
