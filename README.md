@@ -9,9 +9,10 @@
 
 Its API is a synthesis of ideas from:
 
-- 💙JQuery, particularly [#on](https://api.jquery.com/on/) and [#trigger](https://api.jquery.com/trigger/).
 - 💜RxJS. Older than Promises, nearly as old as JQuery.
-- 💜Redux-Observable, Redux Saga, Redux Thunk.
+- 💜Redux-Observable, Redux Saga, Redux Thunk. Async.
+- 💙Macromedia Flash. Mutliple timelines. 
+- 💙JQuery. [#on](https://api.jquery.com/on/) and [#trigger](https://api.jquery.com/trigger/).
 
 For use in a React context, [polyrhythm-react](https://github.com/deanius/polyrhythm-react) exports all in this library, plus React hooks for interfacing with it.
 
@@ -20,16 +21,6 @@ For use in a React context, [polyrhythm-react](https://github.com/deanius/polyrh
 ```
 npm install polyrhythm
 ```
-
-## Examples - What Can You Build With It?
-
-- The [Ping Pong Example](https://codesandbox.io/s/polyrhythm-ping-pong-r6zk5) (as Soccer)
-- The [Chat UI Example](https://codesandbox.io/s/poly-chat-imw2z) with TypingIndicator
-- The [Redux Counter Example](https://codesandbox.io/s/poly-redux-counter-solved-m5cm0)
-- The [Redux Todos Example](https://codesandbox.io/s/polyrhythm-redux-todos-ltigo)
-- A `requestAnimationFrame`-based [Game Loop](https://codesandbox.io/s/poly-game-loop-xirgs?file=/src/index.js)
-- Seven GUIs Solutions [1-Counter](https://codesandbox.io/s/7guis-1-counter-17pxb) | [2-Temperature](https://codesandbox.io/s/7guis-2-temperature-bnjbf) | [3-Flight](https://codesandbox.io/s/7guis-3-flight-c6wre) | [4-CRUD](https://codesandbox.io/s/7guis-4-crud-7wjut) | [5-Timer](https://codesandbox.io/s/7guis-5-timer-xgop9) _(more info at [7 GUIs](https://eugenkiss.github.io/7guis/tasks))_
-- See [All CodeSandbox Demos](https://codesandbox.io/search?refinementList%5Bnpm_dependencies.dependency%5D%5B0%5D=`polyrhythm`&page=1&configure%5BhitsPerPage%5D=12)
 
 # What Is It?
 
@@ -40,18 +31,6 @@ The goal of `polyrhythm` is to be a centralized control of timing for sync or as
 Because of it's pub-sub/event-bus design, your app remains inherently scalable because originators of events don't know about consumers, or vice versa. If a single subscriber errs out, neither the publisher nor other subscribers are affected. Your UI layer remains simple— its only job is to trigger/originate events. All the logic remains separated from the UI layer by the event bus. Testing of most of your app's effects can be done without going through your UI layer.
 
 `polyrhythm` envisions a set of primitives can compose into beautiful Web Apps and User Experiences more simply and flexibly than current JavaScript tools allow for. All thie with a tiny bundle size, and an API that is delightfully simple.
-
-# Why Might I Want It?
-
-You want a portable power-tool of async control that can work in literally ANY UI framework, or even on the server.
-
-You want to build a variety of app—REST or WebSocket apps, browser or Node, CRUD or a 60fps game loop—using the exact same architecture.
-
-You want to solve tough async problems (like race conditions) once and for all, with easy and flexible concurrency control.
-
-You don't know RxJS, or you do, yet want to use fewer RxJS operators, never call "subscribe", and never instantiate a Subject.
-
-You want cancelation to be built-in and composable like with Observables. Not impossible, as with Promises, or hard-to-compose as with `AbortController` signals.
 
 # Where Can I Use It?
 
@@ -152,6 +131,15 @@ If async effects were sounds, this diagram shows how they might overlap/queue/ca
 This ensures that the exact syntax of your code, and your timing information, are decoupled - the one is not expressed in terms of the other. This let's you write fewer lines, more direct and declarative, and generally more managable code.
 
 ---
+
+## Examples - What Can You Build With It?
+
+- The [Redux Counter Example](https://codesandbox.io/s/poly-redux-counter-solved-m5cm0)
+- The [Redux Todos Example](https://codesandbox.io/s/polyrhythm-redux-todos-ltigo)
+- A `requestAnimationFrame`-based [Game Loop](https://codesandbox.io/s/poly-game-loop-xirgs?file=/src/index.js)
+- Seven GUIs Solutions [1-Counter](https://codesandbox.io/s/7guis-1-counter-17pxb) | [2-Temperature](https://codesandbox.io/s/7guis-2-temperature-bnjbf) | [3-Flight](https://codesandbox.io/s/7guis-3-flight-c6wre) | [4-CRUD](https://codesandbox.io/s/7guis-4-crud-7wjut) | [5-Timer](https://codesandbox.io/s/7guis-5-timer-xgop9) _(more info at [7 GUIs](https://eugenkiss.github.io/7guis/tasks))_
+- The [Chat UI Example](https://codesandbox.io/s/poly-chat-imw2z) with TypingIndicator
+- See [All CodeSandbox Demos](https://codesandbox.io/search?refinementList%5Bnpm_dependencies.dependency%5D%5B0%5D=`polyrhythm`&page=1&configure%5BhitsPerPage%5D=12)
 
 <!--
 # Automate All The Things!
