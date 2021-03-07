@@ -131,7 +131,8 @@ export function combineWithConcurrency<T, U>(
   listener: Listener<T, U>,
   mode: ConcurrencyMode,
   individualPipes = [],
-  individualEnder = empty()
+  individualEnder = empty(),
+  individualStarter = () => empty()
 ) {
   const combine = operatorForMode(mode);
   const mappedEvents = (e: T): Observable<U> => {
@@ -139,6 +140,8 @@ export function combineWithConcurrency<T, U>(
       const _results = listener(e);
       // @ts-ignore
       return concat(
+        // @ts-ignore
+        individualStarter(e),
         // @ts-ignore
         toObservable<U>(_results).pipe(...individualPipes),
         individualEnder

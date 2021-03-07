@@ -2,7 +2,7 @@ import { Subject, Observable, Subscription, empty, throwError } from 'rxjs';
 import isMatch from 'lodash.ismatch';
 import { catchError, filter as _filter, map, mergeMap } from 'rxjs/operators';
 import { takeUntil, first } from 'rxjs/operators';
-import { combineWithConcurrency } from './utils';
+import { combineWithConcurrency, after } from './utils';
 import {
   Predicate,
   Filter,
@@ -76,13 +76,17 @@ export class Channel {
   ): Subscription {
     const userTriggers = config.trigger || {};
     const individualPipes = [];
+
+    const nextNotifier = (e: Event) =>
+      // @ts-ignore
+      userTriggers.next ? this.trigger(userTriggers.next, e) : this.trigger(e);
+
     // @ts-ignore
-    if (userTriggers.next) {
+    if (userTriggers.next || userTriggers === true) {
       individualPipes.push(
-        mergeMap(e => {
+        mergeMap((e: Event) => {
           try {
-            // @ts-ignore
-            this.trigger(userTriggers.next, e);
+            nextNotifier(e);
             return empty();
           } catch (ex) {
             return throwError(new Error(MSG_LISTENER_ERROR));
@@ -115,13 +119,24 @@ export class Channel {
           o.complete();
         })
       : empty();
+
+    const individualStarter = (e: Event) =>
+      // @ts-ignore
+      userTriggers.start
+        ? after(0, () => {
+            // @ts-ignore
+            this.trigger(userTriggers.start, e.payload);
+          })
+        : empty();
+
     const _combined = combineWithConcurrency<T, U>(
       this.query(eventMatcher),
       listener,
       // @ts-ignore
       config.mode,
       individualPipes,
-      individualEnder
+      individualEnder,
+      individualStarter
     );
 
     const listenerObserver = {

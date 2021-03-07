@@ -3,7 +3,10 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [1.2.4 Can declaratively fire a 'start' event upon Observable subscription](#124-can-declaratively-fire-a-start-event-upon-observable-subscription)
+- [1.2.3 Important bug fix](#123-important-bug-fix)
 - [1.2 Smaller Bundle, More Robust](#12-smaller-bundle-more-robust)
+- [1.1.6 takeUntil](#116-takeuntil)
 - [1.1.3 await query(), and succint tests](#113-await-query-and-succint-tests)
 - [1.1.2 Support generators as listeners](#112-support-generators-as-listeners)
 - [1.1.1 Add optional TypeScript typings](#111-add-optional-typescript-typings)
@@ -15,6 +18,14 @@
 - [1.0.6 Handy RxJS exports](#106-handy-rxjs-exports)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+#### 1.2.4 Can declaratively fire a 'start' event upon Observable subscription
+
+For feature-parity with conventions like for Redux Query, and those
+that emit an event at the beginning of an async operation, a TriggerConfig may
+now admit a `start` event, which will be triggered.
+
+Also fixed an issue where trigger: true (the source of so many Typescript errors) wasn't actually triggering.
 
 #### 1.2.3 Important bug fix
 

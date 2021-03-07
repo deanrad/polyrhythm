@@ -89,6 +89,7 @@ export interface TriggerConfig {
   next?: string;
   complete?: string;
   error?: string;
+  start?: string;
 }
 
 export interface ListenerConfig {
