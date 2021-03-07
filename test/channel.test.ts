@@ -473,6 +473,72 @@ describe('Channel Behavior', () => {
         // rescued, so both causes and effects
         expect(seen).to.have.length(4);
       });
+
+      it(
+        'can trigger `start` events via config - parallel',
+        captureEvents(async seen => {
+          listen('cause', () => after(1, () => '⚡️'), {
+            mode: 'parallel',
+            trigger: { start: 'started', next: 'effect' },
+          });
+          trigger('cause', 'a');
+          trigger('cause', 'b');
+
+          await delay(5);
+          expect(seen).to.eql([
+            { type: 'cause', payload: 'a' },
+            { type: 'started', payload: 'a' },
+            { type: 'cause', payload: 'b' },
+            { type: 'started', payload: 'b' },
+            { type: 'effect', payload: '⚡️' },
+            { type: 'effect', payload: '⚡️' },
+          ]);
+        })
+      );
+
+      it(
+        'can trigger `start` events via config - serial',
+        captureEvents(async seen => {
+          listen('cause', () => after(1, () => '⚡️'), {
+            mode: 'serial',
+            trigger: { start: 'started', next: 'effect' },
+          });
+
+          trigger('cause', 'a');
+          trigger('cause', 'b');
+
+          await delay(5);
+          expect(seen).to.eql([
+            { type: 'cause', payload: 'a' },
+            { type: 'started', payload: 'a' },
+            { type: 'cause', payload: 'b' },
+            { type: 'effect', payload: '⚡️' },
+            { type: 'started', payload: 'b' },
+            { type: 'effect', payload: '⚡️' },
+          ]);
+        })
+      );
+
+      it(
+        'can trigger entire Observable events with trigger:true',
+        captureEvents(async seen => {
+          listen(
+            'cause',
+            () => after(1, () => ({ type: 'effect', payload: '⚡️' })),
+            {
+              trigger: true,
+            }
+          );
+
+          trigger('cause', 'a');
+
+          await delay(5);
+          expect(seen).to.eql([
+            { type: 'cause', payload: 'a' },
+            { type: 'effect', payload: '⚡️' },
+          ]);
+        })
+      );
     });
 
     describe('Error Handling', () => {
