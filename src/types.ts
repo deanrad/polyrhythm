@@ -33,6 +33,7 @@ export type EffectDescriptor<T> =
   | Promise<T>
   | PromiseFactory<T>
   | AwaitableObservable<T>
+  | Generator<T>
   | Observable<T>
   | ObservableConstructorFn<T>;
 
@@ -55,7 +56,7 @@ export interface Filter<T> {
  * events is known as a Listener. It receives the event.
  */
 export interface Listener<T, U> {
-  (item: T): void | EffectDescriptor<U>;
+  (item: T): void | any | EffectDescriptor<U>;
 }
 
 /**

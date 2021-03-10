@@ -179,9 +179,15 @@ function toObservable<T>(_results: any): Observable<T> {
       return () => _results.unsubscribe();
     });
 
-  // A Promise or generator is acceptable
-  if (_results.then || typeof _results[Symbol.iterator] === 'function')
-    return from(_results as Promise<T>);
+  // A Promise  is acceptable
+  if (_results.then) return from(_results as Promise<T>);
+
+  // All but string iterables will be expanded (generators, arrays)
+  if (
+    typeof _results[Symbol.iterator] === 'function' &&
+    typeof _results !== 'string'
+  )
+    return from(_results as Generator<T>);
 
   // otherwise we convert it to a single-item Observable
   return of(_results);
