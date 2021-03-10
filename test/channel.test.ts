@@ -395,151 +395,202 @@ describe('Channel Behavior', () => {
       );
 
       it(
-        'can trigger `next` events via config - and errors kill',
+        'Does not exapand a string when returned bare from a handler',
         captureEvents(async seen => {
-          // when the 'cause' listener triggers next, it'll throw
-          filter('call-err', syncThrow);
-
-          // This listener will be brought down by the exception
-          const subs = listen('cause', () => after(1, () => '⚡️'), {
-            trigger: { next: 'call-err' },
+          listen('cause', () => 'abc', {
+            trigger: { next: 'effect' },
           });
-
           trigger('cause');
-          await delay(2);
-
-          // Error killed it
-          expect(subs).to.have.property('closed', true);
-
-          expect(seen).to.eql([{ type: 'cause' }]);
-          trigger('cause');
-          await delay(2);
-          // No effect, no error
-          expect(seen).to.eql([{ type: 'cause' }, { type: 'cause' }]);
-        })
-      );
-      it(
-        'can terminate a listener via takeUntil',
-        captureEvents(async seen => {
-          listen(
-            'start',
-            () =>
-              new Observable(() => {
-                const subs = after(1, () => {
-                  trigger('⚡️');
-                }).subscribe();
-                return () => {
-                  trigger('unsub');
-                  subs.unsubscribe();
-                };
-              }),
-            { takeUntil: 'end' }
-          );
-
-          trigger('start');
-          // @ts-ignore
-          expect(seen.map(e => e.type)).to.eql(['start']);
-          trigger('end');
-          await after(1);
-          // @ts-ignore
-          expect(seen.map(e => e.type)).to.eql(['start', 'end', 'unsub']);
-        })
-      );
-
-      it$('can trigger `complete` events via config', seen => {
-        listen('cause', () => of(2.718), {
-          trigger: { next: 'effect', complete: 'cause/complete' },
-        });
-        trigger('cause');
-
-        expect(seen).to.eql([
-          { type: 'cause' },
-          { type: 'effect', payload: 2.718 },
-          { type: 'cause/complete' },
-        ]);
-      });
-
-      it$('can rescue `error` events via config', seen => {
-        listen('cause', throwsError, { trigger: { error: 'cause/error' } });
-        trigger('cause');
-        expect(seen.length).to.equal(2);
-        expect(seen[0]).to.eql({ type: 'cause' });
-        expect(seen[1].type).to.eq('cause/error');
-        expect(seen[1].payload).to.be.instanceOf(Error);
-
-        trigger('cause');
-        expect(seen[2]).to.eql({ type: 'cause' });
-
-        // rescued, so both causes and effects
-        expect(seen).to.have.length(4);
-      });
-
-      it(
-        'can trigger `start` events via config - parallel',
-        captureEvents(async seen => {
-          listen('cause', () => after(1, () => '⚡️'), {
-            mode: 'parallel',
-            trigger: { start: 'started', next: 'effect' },
-          });
-          trigger('cause', 'a');
-          trigger('cause', 'b');
-
-          await delay(5);
           expect(seen).to.eql([
-            { type: 'cause', payload: 'a' },
-            { type: 'started', payload: 'a' },
-            { type: 'cause', payload: 'b' },
-            { type: 'started', payload: 'b' },
-            { type: 'effect', payload: '⚡️' },
-            { type: 'effect', payload: '⚡️' },
+            { type: 'cause' },
+            { type: 'effect', payload: 'abc' },
           ]);
         })
       );
 
       it(
-        'can trigger `start` events via config - serial',
+        'Expands an array/iterable when returned bare from a handler',
         captureEvents(async seen => {
-          listen('cause', () => after(1, () => '⚡️'), {
-            mode: 'serial',
-            trigger: { start: 'started', next: 'effect' },
+          listen('cause', () => ['a', 'b'], {
+            trigger: { next: 'effect' },
           });
-
-          trigger('cause', 'a');
-          trigger('cause', 'b');
-
-          await delay(5);
+          trigger('cause');
           expect(seen).to.eql([
-            { type: 'cause', payload: 'a' },
-            { type: 'started', payload: 'a' },
-            { type: 'cause', payload: 'b' },
-            { type: 'effect', payload: '⚡️' },
-            { type: 'started', payload: 'b' },
-            { type: 'effect', payload: '⚡️' },
+            { type: 'cause' },
+            { type: 'effect', payload: 'a' },
+            { type: 'effect', payload: 'b' },
           ]);
         })
       );
 
       it(
-        'can trigger entire Observable events with trigger:true',
+        'Expands/runs a generator',
         captureEvents(async seen => {
+          expect(1).to.eql(1);
           listen(
-            'cause',
-            () => after(1, () => ({ type: 'effect', payload: '⚡️' })),
-            {
-              trigger: true,
-            }
+            'seq',
+            function*({ payload: count }) {
+              for (let i = 1; i <= count; i++) {
+                yield i;
+              }
+            },
+            { trigger: { next: 'seq-value' } }
           );
-
-          trigger('cause', 'a');
-
-          await delay(5);
+          trigger('seq', 2);
           expect(seen).to.eql([
-            { type: 'cause', payload: 'a' },
-            { type: 'effect', payload: '⚡️' },
+            { type: 'seq', payload: 2 },
+            { type: 'seq-value', payload: 1 },
+            { type: 'seq-value', payload: 2 },
           ]);
         })
       );
     });
+
+    it(
+      'can trigger `next` events via config - and errors kill',
+      captureEvents(async seen => {
+        // when the 'cause' listener triggers next, it'll throw
+        filter('call-err', syncThrow);
+
+        // This listener will be brought down by the exception
+        const subs = listen('cause', () => after(1, () => '⚡️'), {
+          trigger: { next: 'call-err' },
+        });
+
+        trigger('cause');
+        await delay(2);
+
+        // Error killed it
+        expect(subs).to.have.property('closed', true);
+
+        expect(seen).to.eql([{ type: 'cause' }]);
+        trigger('cause');
+        await delay(2);
+        // No effect, no error
+        expect(seen).to.eql([{ type: 'cause' }, { type: 'cause' }]);
+      })
+    );
+    it(
+      'can terminate a listener via takeUntil',
+      captureEvents(async seen => {
+        listen(
+          'start',
+          () =>
+            new Observable(() => {
+              const subs = after(1, () => {
+                trigger('⚡️');
+              }).subscribe();
+              return () => {
+                trigger('unsub');
+                subs.unsubscribe();
+              };
+            }),
+          { takeUntil: 'end' }
+        );
+
+        trigger('start');
+        // @ts-ignore
+        expect(seen.map(e => e.type)).to.eql(['start']);
+        trigger('end');
+        await after(1);
+        // @ts-ignore
+        expect(seen.map(e => e.type)).to.eql(['start', 'end', 'unsub']);
+      })
+    );
+
+    it$('can trigger `complete` events via config', seen => {
+      listen('cause', () => of(2.718), {
+        trigger: { next: 'effect', complete: 'cause/complete' },
+      });
+      trigger('cause');
+
+      expect(seen).to.eql([
+        { type: 'cause' },
+        { type: 'effect', payload: 2.718 },
+        { type: 'cause/complete' },
+      ]);
+    });
+
+    it$('can rescue `error` events via config', seen => {
+      listen('cause', throwsError, { trigger: { error: 'cause/error' } });
+      trigger('cause');
+      expect(seen.length).to.equal(2);
+      expect(seen[0]).to.eql({ type: 'cause' });
+      expect(seen[1].type).to.eq('cause/error');
+      expect(seen[1].payload).to.be.instanceOf(Error);
+
+      trigger('cause');
+      expect(seen[2]).to.eql({ type: 'cause' });
+
+      // rescued, so both causes and effects
+      expect(seen).to.have.length(4);
+    });
+
+    it(
+      'can trigger `start` events via config - parallel',
+      captureEvents(async seen => {
+        listen('cause', () => after(1, () => '⚡️'), {
+          mode: 'parallel',
+          trigger: { start: 'started', next: 'effect' },
+        });
+        trigger('cause', 'a');
+        trigger('cause', 'b');
+
+        await delay(5);
+        expect(seen).to.eql([
+          { type: 'cause', payload: 'a' },
+          { type: 'started', payload: 'a' },
+          { type: 'cause', payload: 'b' },
+          { type: 'started', payload: 'b' },
+          { type: 'effect', payload: '⚡️' },
+          { type: 'effect', payload: '⚡️' },
+        ]);
+      })
+    );
+
+    it(
+      'can trigger `start` events via config - serial',
+      captureEvents(async seen => {
+        listen('cause', () => after(1, () => '⚡️'), {
+          mode: 'serial',
+          trigger: { start: 'started', next: 'effect' },
+        });
+
+        trigger('cause', 'a');
+        trigger('cause', 'b');
+
+        await delay(5);
+        expect(seen).to.eql([
+          { type: 'cause', payload: 'a' },
+          { type: 'started', payload: 'a' },
+          { type: 'cause', payload: 'b' },
+          { type: 'effect', payload: '⚡️' },
+          { type: 'started', payload: 'b' },
+          { type: 'effect', payload: '⚡️' },
+        ]);
+      })
+    );
+
+    it(
+      'can trigger entire Observable events with trigger:true',
+      captureEvents(async seen => {
+        listen(
+          'cause',
+          () => after(1, () => ({ type: 'effect', payload: '⚡️' })),
+          {
+            trigger: true,
+          }
+        );
+
+        trigger('cause', 'a');
+
+        await delay(5);
+        expect(seen).to.eql([
+          { type: 'cause', payload: 'a' },
+          { type: 'effect', payload: '⚡️' },
+        ]);
+      })
+    );
 
     describe('Error Handling', () => {
       describe('Sync Errors', () => {
