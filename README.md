@@ -11,7 +11,7 @@ Its API is a synthesis of ideas from:
 
 - 💜RxJS. Older than Promises, nearly as old as JQuery.
 - 💜Redux-Observable, Redux Saga, Redux Thunk. Async.
-- 💙Macromedia Flash. Mutliple timelines. 
+- 💙Macromedia Flash. Mutliple timelines.
 - 💙JQuery. [#on](https://api.jquery.com/on/) and [#trigger](https://api.jquery.com/trigger/).
 
 For use in a React context, [polyrhythm-react](https://github.com/deanius/polyrhythm-react) exports all in this library, plus React hooks for interfacing with it.
