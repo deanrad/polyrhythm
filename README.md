@@ -60,8 +60,6 @@ Now let's dig into some examples.
 
 ---
 
-It's all RxJS underneath of course, but simpler, as shown in these examples.
-
 ## Example 1: Auto-Complete Input (replace mode)
 
 Based on the original example at [LearnRxjs.io](https://www.learnrxjs.io/learn-rxjs/recipes/type-ahead)...
