@@ -1,6 +1,13 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { after, microq, macroq, microflush, macroflush } from '../src/utils';
+import {
+  after,
+  delay,
+  microq,
+  macroq,
+  microflush,
+  macroflush,
+} from '../src/utils';
 import { concat, timer } from 'rxjs';
 import { fakeSchedulers } from 'rxjs-marbles/mocha';
 
@@ -149,6 +156,22 @@ describe('Utilities', () => {
     });
   });
 
+  describe('delay', () => {
+    it(
+      'creates a no-value Observable',
+      fakeTime(clock => {
+        const nextCallback = sinon.spy();
+        const completeCb = sinon.spy();
+
+        delay(0).subscribe({ next: nextCallback, complete: completeCb });
+        clock.tick(0);
+
+        expect(nextCallback.calledOnce).not.to.be.ok;
+        expect(completeCb.calledOnce).to.be.ok;
+      })
+    );
+  });
+
   describe('microq (microqueue)', () => {
     it('executes functions on the microtask queue', async () => {
       const seen: Array<number> = [];
@@ -272,3 +295,11 @@ describe('Utilities', () => {
     );
   });
 });
+
+function fakeTime(testFn: (clock: sinon.SinonFakeTimers) => any) {
+  let clock = sinon.useFakeTimers();
+  return () => {
+    testFn(clock);
+    clock.restore();
+  };
+}

@@ -15,6 +15,7 @@ import {
   concatMap,
   exhaustMap,
   switchMap,
+  delay as _delay,
 } from 'rxjs/operators';
 import { AwaitableObservable, ConcurrencyMode, Listener, Thunk } from './types';
 import { toggleMap } from './toggleMap';
@@ -67,6 +68,13 @@ export function after<T>(
   };
   // @ts-ignore
   return resultObs;
+}
+
+/**
+ *
+ */
+export function delay(ms: number) {
+  return empty().pipe(_delay(ms));
 }
 
 /** Executes the given function on the microtask queue.
