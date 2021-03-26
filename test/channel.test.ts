@@ -12,6 +12,8 @@ import { tap } from 'rxjs/operators';
 import { Channel } from '../src/channel';
 import { Event, ConcurrencyMode, Filter } from '../src/types';
 import { randomId, after } from '../src/utils';
+import actionCreatorFactory from 'typescript-fsa';
+const actionCreator = actionCreatorFactory();
 
 const channel = new Channel();
 const trigger = channel.trigger.bind(channel);
@@ -38,6 +40,10 @@ function captureEvents<T>(testFn: (arg: T[]) => void | Promise<any>) {
 
 function it$(name: string, fn: (arg: Event[]) => void | Promise<any>) {
   it(name, captureEvents(fn));
+}
+
+function expectType<T>(t: T): T {
+  return t;
 }
 
 require('clear')();
@@ -873,6 +879,13 @@ describe('Channel Behavior', () => {
             type: 'foo',
             bam: 'bing',
           });
+        });
+
+        it('can trigger an FSA Action', () => {
+          const a = actionCreator<Number>('boom');
+          const action = a(1);
+          expectType<string>(action.type);
+          trigger(action);
         });
       });
 

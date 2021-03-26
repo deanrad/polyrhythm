@@ -3,23 +3,29 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [1.2.7 Better Typescript typings.](#127-better-typescript-typings)
 - [1.2.6 After can defer an Observable.](#126-after-can-defer-an-observable)
 - [1.2.5 Allow listener-returned bare values or generators](#125-allow-listener-returned-bare-values-or-generators)
-- [1.2.4 Can declaratively fire a 'start' event upon Observable subscription](#124-can-declaratively-fire-a-start-event-upon-observable-subscription)
-- [1.2.3 Important bug fix](#123-important-bug-fix)
-- [1.2 Smaller Bundle, More Robust](#12-smaller-bundle-more-robust)
-- [1.1.6 takeUntil](#116-takeuntil)
-- [1.1.3 await query(), and succint tests](#113-await-query-and-succint-tests)
-- [1.1.2 Support generators as listeners](#112-support-generators-as-listeners)
-- [1.1.1 Add optional TypeScript typings](#111-add-optional-typescript-typings)
-- [1.1.0 Remove React dependencies](#110-remove-react-dependencies)
-- [1.0.12 Trigger whole event objects](#1012-trigger-whole-event-objects)
-- [1.0.11 `query.toPromise()` returns the next matching event](#1011-querytopromise-returns-the-next-matching-event)
-- [1.0.8 `microq` and `macroq` functions](#108-microq-and-macroq-functions)
-- [1.0.7 TypeScript typings corrected for `after`](#107-typescript-typings-corrected-for-after)
-- [1.0.6 Handy RxJS exports](#106-handy-rxjs-exports)
+  - [1.2.4 Can declaratively fire a 'start' event upon Observable subscription](#124-can-declaratively-fire-a-start-event-upon-observable-subscription)
+  - [1.2.3 Important bug fix](#123-important-bug-fix)
+  - [1.2 Smaller Bundle, More Robust](#12-smaller-bundle-more-robust)
+  - [1.1.6 takeUntil](#116-takeuntil)
+  - [1.1.3 await query(), and succint tests](#113-await-query-and-succint-tests)
+  - [1.1.2 Support generators as listeners](#112-support-generators-as-listeners)
+  - [1.1.1 Add optional TypeScript typings](#111-add-optional-typescript-typings)
+  - [1.1.0 Remove React dependencies](#110-remove-react-dependencies)
+  - [1.0.12 Trigger whole event objects](#1012-trigger-whole-event-objects)
+  - [1.0.11 `query.toPromise()` returns the next matching event](#1011-querytopromise-returns-the-next-matching-event)
+  - [1.0.8 `microq` and `macroq` functions](#108-microq-and-macroq-functions)
+  - [1.0.7 TypeScript typings corrected for `after`](#107-typescript-typings-corrected-for-after)
+  - [1.0.6 Handy RxJS exports](#106-handy-rxjs-exports)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+### 1.2.7 Better Typescript typings, docs.
+
+Won't show type errors when triggering typescript-fsa actions (they weren't runtime issues anyway). 4 fewer ts-ignores due to Type Guards
+`as`, and generally more type awareness.
 
 ### 1.2.6 After can defer an Observable.
 

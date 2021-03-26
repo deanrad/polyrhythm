@@ -1,6 +1,6 @@
 {
   "name": "polyrhythm",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "license": "MIT",
   "author": "Dean Radcliffe",
   "repository": "https://github.com/deanius/polyrhythm",
@@ -26,6 +26,7 @@
     "rxjs": "^6.5.5"
   },
   "devDependencies": {
+    "@reduxjs/toolkit": "^1.5.1",
     "@size-limit/preset-small-lib": "^4.4.5",
     "@types/chai": "^4.2.11",
     "@types/expect": "^24.3.0",
@@ -46,9 +47,10 @@
     "size-limit": "^4.4.5",
     "ts-mocha": "^7.0.0",
     "tsdx": "^0.11.0",
-    "tslib": "^1.10.0",
+    "tslib": "^2.1.0",
     "typedoc": "^0.17.4",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "typescript-fsa": "^3.0.0"
   },
   "husky": {
     "hooks": {
