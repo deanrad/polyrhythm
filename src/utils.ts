@@ -5,7 +5,6 @@ import {
   NEVER,
   timer,
   Observable,
-  ObservableInput,
   throwError,
   empty,
   concat,
@@ -55,15 +54,16 @@ export function after<T>(
 ): AwaitableObservable<T> {
   const delay = ms <= 0 ? of(0) : ms === Infinity ? NEVER : timer(ms);
 
+  const resultMapper =
+    typeof objOrFn === 'function'
+      ? (objOrFn as (value: Number) => any)
+      : () => objOrFn;
+
+  // prettier-ignore
   const resultObs: Observable<T> = delay.pipe(
-    // @ts-ignore
-    objOrFn?.subscribe
-      ? // @ts-ignore
-        mergeMap(() => objOrFn as ObservableInput<T>)
-      : // @ts-ignore
-        map(() =>
-          typeof objOrFn === 'function' ? (objOrFn as Function)() : objOrFn
-        )
+    isObservable<T>(objOrFn)
+      ? mergeMap(() => objOrFn)
+      : map(resultMapper)
   );
 
   // after is a 'thenable, thus usable with await.
@@ -72,8 +72,12 @@ export function after<T>(
   resultObs.then = function(resolve, reject) {
     return resultObs.toPromise().then(resolve, reject);
   };
-  // @ts-ignore
-  return resultObs;
+
+  return resultObs as AwaitableObservable<T>;
+}
+
+function isObservable<T>(obj: any): obj is Observable<T> {
+  return obj?.subscribe !== undefined;
 }
 
 /** Executes the given function on the microtask queue.
