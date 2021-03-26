@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { after, microq, macroq, microflush, macroflush } from '../src/utils';
-import { concat, timer } from 'rxjs';
+import { concat, timer, of } from 'rxjs';
 import { fakeSchedulers } from 'rxjs-marbles/mocha';
 
 describe('Utilities', () => {
@@ -69,6 +69,16 @@ describe('Utilities', () => {
         it('Becomes the value of the Observable', async () => {
           const result = await after(1, 2.718).toPromise();
           expect(result).to.eql(2.718);
+        });
+      });
+      describe('when an Observable', () => {
+        it('delays the subscribe to the Observable without producing a value', async () => {
+          // const subject = after(10, of(2.718));
+          const subject = after(10, of(2.718));
+          const seen: number[] = [];
+          subject.subscribe(v => seen.push(v));
+          await after(11);
+          expect(seen).to.eql([2.718]);
         });
       });
       describe('when not provided', () => {
