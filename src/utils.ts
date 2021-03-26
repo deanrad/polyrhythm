@@ -50,13 +50,17 @@ export const randomId = (length: number = 7) => {
  */
 export function after<T>(
   ms: number,
-  objOrFn?: T | Thunk<T>
+  objOrFn?: T | Thunk<T> | Observable<T>
 ): AwaitableObservable<T> {
   const delay = ms <= 0 ? of(0) : ms === Infinity ? NEVER : timer(ms);
 
   const resultObs: Observable<T> = delay.pipe(
     // @ts-ignore
-    map(() => (typeof objOrFn === 'function' ? objOrFn() : objOrFn))
+    objOrFn?.subscribe
+      ? // @ts-ignore
+        mergeMap(() => objOrFn)
+      : // @ts-ignore
+        map(() => (typeof objOrFn === 'function' ? objOrFn() : objOrFn))
   );
 
   // after is a 'thenable, thus usable with await.

@@ -3,6 +3,8 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [1.2.6 After can defer an Observable.](#126-after-can-defer-an-observable)
+- [1.2.5 Allow listener-returned bare values or generators](#125-allow-listener-returned-bare-values-or-generators)
 - [1.2.4 Can declaratively fire a 'start' event upon Observable subscription](#124-can-declaratively-fire-a-start-event-upon-observable-subscription)
 - [1.2.3 Important bug fix](#123-important-bug-fix)
 - [1.2 Smaller Bundle, More Robust](#12-smaller-bundle-more-robust)
@@ -18,6 +20,21 @@
 - [1.0.6 Handy RxJS exports](#106-handy-rxjs-exports)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+### 1.2.6 After can defer an Observable.
+
+It'd be handy to have `after(100, ob$)`
+defer the Observable-now it does. Important to note: this is not
+the same as `obs.pipe(delay(N))`, which delays the notifications, but still eagerly subscribes. `after` defers
+the subscription itself, so if canceled early enough, the side effect does not
+have to occur. Perfect for debouncing, with `mode: replace`.
+
+usually (which is why you can call `toPromise` on it, or `await` it)
+
+### 1.2.5 Allow listener-returned bare values or generators
+
+Listeners ought to return Observables, but when they return an iterable, which could be a generator,
+how should the values be provided? They generally become `next` notifications individually, to preserve cases where, like Websockets, many notifications come in incrementally. However, a String is iterable, and it seemed a bug to `next` each letter of the string.
 
 #### 1.2.4 Can declaratively fire a 'start' event upon Observable subscription
 

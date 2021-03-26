@@ -36,11 +36,139 @@ Because of it's pub-sub/event-bus design, your app remains inherently scalable b
 
 The framework-independent primitives of `polyrhythm` can be used anywhere. It adds only 3Kb to your bundle, so it's worth a try. It is test-covered, provides types, is production-tested and performance-tested.
 
-# How Does It Help Me Build Apps?
+---
 
+# Declare Your Timing, Don't Code It
+
+RxJS was written in 2010 to address the growing need for async management code in the world of AJAX.  Yet in 2021, it can still be a large impact to the codebase to add `async` to a function declaration, or turn a function into a generator with `function*() {}`. That impact can 'hard-code' in unadaptable behaviors or latency. And relying on framework features (like the timing difference between `useEffect` and `useLayoutEffect`) can make code vulnerable to framework changes, and make it harder to test.
+
+`polyrhythm` gives you 5 concurrency modes you can plug in trivially as configuration parameters, to get the full power of RxJS elegantly.
+
+The listener option `mode` allows you to control the concurrency behavior of a listener declaratively, and is important for making polyrhythm so adaptable to desired timing outcomes. For an autocomplete or session timeout, the `replace` mode is appropriate. For other use cases, `serial`, `parallel` or `ignore` may be appropriate.
+
+If async effects like AJAX were represented as sounds, this diagram shows how they might overlap/queue/cancel each other.
+
+<a href="https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png"><img height="400" src="https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png"></a>
+
+Being able to plug in a strategy ensures that the exact syntax of your code, and your timing information, are decoupled - the one is not expressed in terms of the other. This lets you write fewer lines, be more direct and declarative, and generally cut down on race conditions.
+
+Not only do these 5 modes handle not only what you'd want to do with RxJS, but they handle anything your users would expect code to do when async process overlap! You have the ease to change behavior to satisfy your pickiest users, without rewriting code - you only have to update your tests to match!
+
+![](https://s3.amazonaws.com/www.deanius.com/async-mode-table.png)
+ 
+Now let's dig into some examples.
+
+---
+
+It's all RxJS underneath of course, but simpler, as shown in these examples.
+
+## Example 1: Auto-Complete Input (replace mode)
+
+Based on the original example at [LearnRxjs.io](https://www.learnrxjs.io/learn-rxjs/recipes/type-ahead)...
+
+**Set up an event handler to trigger `search/start` events from an onChange:**
+
+```js
+<input onChange={e => trigger('search/start', e.target.value)}/>
+```
+
+**Listen for the `search/results` event and update component or global state:**
+
+```js
+filter('search/results', ({ payload: results }) => {
+  setResults(results)
+});
+```
+
+**Respond to `search/start` events with an Observable, or Promise of the ajax request.** 
+
+Assign the output to the `search/results` event, and specify your `mode`, and you're done and race-condition-free!
+
+```js
+on('search/start', ({ payload }) => {
+  return fetch(URL + payload).then(res => res.json())
+}, {
+ mode: 'replace',
+ trigger: { next: 'search/results' }
+});
+```
+
+`mode:replace` does what `switchMap` does, but with readability foremost, and without requiring you to model your app as a chained Observable,  or manage Subscription objects or call `.subscribe()` or `.unsubscribe()` explicitly.
+
+[Debounced Search CodeSandbox](https://codesandbox.io/s/debounced-search-polyrhythm-react-w1t8o?file=/src/App.js)
+
+## Example 2: Ajax Cat Fetcher (multi-mode)
+Based on an [XState Example](https://dev.to/davidkpiano/no-disabling-a-button-is-not-app-logic-598i) showing the value of separating out effects from components, and how to be React Concurrent Mode (Suspense-Mode) safe, in XState or Polyrhythm.
+
+Try it out - play with it! Is the correct behavior to use `serial` mode to allow you to queue up cat fetches, or `ignore` to disable new cats while one is loading, as XState does? You choose! I find having these options easily pluggble enables the correct UX to be discovered through play, and tweaked with minimal effort.
+
+[Cat Fetcher AJAX CodeSandbox](https://codesandbox.io/s/cat-fetcher-with-polyrhythm-uzjln?file=/src/handlers.js)
+
+## Example 3: Redux Toolkit Counter (multi-mode)
+
+All 5 modes can be tried in the polyrhythm version of the 
+ [Redux Counter Example Sandbox](https://codesandbox.io/s/poly-redux-counter-solved-m5cm0)
+ 
+---
+
+# Can I use Promises instead of Observables?
+Recall the auto-complete example, in which you could create a new `search/results` event from either a Promise or Observable:
+
+```js
+on('search/start', ({ payload }) => {
+  // return Observable
+  return ajax.get(URL + payload).pipe(
+    tap({ results } => results)
+  );
+  // OR Promise
+  return fetch(URL + payload).then(res => res.json())
+}, {
+ mode: 'replace',
+ trigger: { next: 'search/results' }
+});
+```
+With either the Promise, or Observable, the `mode: replace` guarantees your autocomplete never has the race-condition where an old result populates after new letters invalidate it. But with an Observable:
+
+- The AJAX can be canceled, freeing up bandwidth as well
+- The AJAX can be set to be canceled implicitly upon component unmount, channel reset, or by another event declaratively with `takeUntil`.  And no Abort Controllers or `await` ever required!
+
+You have to return an Observable to get cancelation, and you only get all the overlap strategies and lean performance when you can cancel. So best practice is to use them - but they are not required.
+
+---
+# UI Layer Bindings
+
+`trigger`, `filter` `listen` (aka `on`), and `query` are methods bound to an instance of a `Channel`. For convenience, and in many examples, these bound methods may be imported and used directly
+
+```js
+import { trigger, on } from 'polyrhythm';
+on(...)
+trigger(...)
+```
+These top-level imports are enough to get started, and one channel is usually enough per JS process. However you may want more than one channel, or have control over its creation:
+
+```js
+import { Channel } from 'polyrhythm';
+const channel = new Channel();
+channel.trigger(...)
+```
+
+(In a React environment, a similar choice exists- a top-level `useListener` hook, or a listener bound to a channel via `useChannel`. React equivalents are discussed further in the [polyrhythm-react](https://github.com/deanius/polyrhythm-react) repo)
+
+To tie cancelation into your UI layer's component lifecycle (or server-side request fulfillment if in Node), call `.unsubscribe()` on the return value from `channel.listen` or `channel.filter` for any handlers the component set up:
+
+```js
+// at mount 
+const sub = channel.on(...)..
+// at unmount
+sub.unsubscribe()
+``` 
+
+Lastly in a hot-module-reloading environment, `channel.reset()` is handy to remove all listeners, canceling their effects. Include that call early in the loading process to avoid double-registration of listeners in an HMR environment.
+
+# API 
 A polyrhythm app, sync or async, can be built out of 6 or fewer primitives:
 
-- `trigger` - Puts an event on the event bus, and must be called at least once in your app. Generally all a UI Event Handler needs to do is call `trigger` with an event type and a payload. <br/>Example — `addEventListener('click', ()=>{ trigger('timer/start') })`
+- `trigger` - Puts an event on the event bus, and should be called at least once in your app. Generally all a UI Event Handler needs to do is call `trigger` with an event type and a payload. <br/>Example — `addEventListener('click', ()=>{ trigger('timer/start') })`
 
 - `filter` - Adds a function to be called on every matching `trigger`. The filter function will be called synchronously in the call-stack of `trigger`, can modify its events, and can prevent events from being further handled by throwing an Error.<br/>For metadata — `filter('timer/start', event => { event.payload.startedAt = Date.now()) })`<br/>Validation — `filter('form/submit', ({ payload }) => { isValid(payload) || throw new Error() })`
 
@@ -54,7 +182,7 @@ A polyrhythm app, sync or async, can be built out of 6 or fewer primitives:
   `
 - `concat` - Combines Observables by sequentially starting them as each previous one finishes. This only works on Observables which are deferred, not Promises which are begun at their time of creation. <br/>Sequence — `login().then(() => concat(after(9000, 'Your session is about to expire'), after(1000, 'Your session has expired')).subscribe(modal))`
 
-You can use Observables from any source in `polyrhythm`, not just those created with `concat` and `after`. For maximum flexibility, use the `Observable` constructor to wrap any async operation - and use them anywhere you need more control over the Observables behavior. Be sure to return a cleanup function from the Observable constructor
+You can use Observables from any source in `polyrhythm`, not just those created with `concat` and `after`. For maximum flexibility, use the `Observable` constructor to wrap any async operation - and use them anywhere you need more control over the Observables behavior. Be sure to return a cleanup function from the Observable constructor, as in this session-timeout example.
 
 ```js
 listen('user/activity', () => {
@@ -71,68 +199,9 @@ listen('user/activity', () => {
 });
 ```
 
-<details>
-<summary>
-More Explanation
-</summary>
-According to Pub-Sub, there are publishers and subscribers. In `polyrhythm` there are event **Originators** (publishers) which call `trigger`, and **Handlers** which `filter`, or `listen` in one of several concurrency modes.
-
-## Event Originators
-
-**Events** are `trigger`-ed by an **Originator**.
-
-## The Channel
-
-An instance of an event-bus is called a **Channel**. There's a default channel, to which top-level exports `filter`, `trigger`, and `listen` are bound.
-
-## Handlers
-
-**Handlers** are either **Filters** or **Listeners**. Both specify:
-
-- A function to run
-- An event criteria for when to run the function
-
-The difference is how they execute, and their relative decoupling of isolation.
-
-**Filters** are run synchronously with `trigger()` prior to events arriving on the event bus.
-
-_IMPORTANT: **Filters** can modify events. And their exceptions propogate up to the **Originator**. So one of their uses is to prevent **Listeners** from responding._
-
-**Listeners** are run when events make it through all filters.
-
-**Listeners** are often **Originators**, when they `trigger` new events.
-
-**Listeners** are how to do async. They return Promises, or **Tasks**— RxJS Observables.
-
-A **Task** is a cancelable, unstarted object which the listener may run, or cancel upon a new event.
-
-**Listeners** can be provided a concurrency `mode` to control what happens when events come in fast, so that the execution of their **Task**s overlap. Modes include common strategies like enqueueing or canceling the previous.
-
-_IMPORTANT: The app is protected from each **Listener** as though by a fuse. `polyrhythm` intercepts uncaught exceptions and terminates only the offending listener._
-
-</details>
-
 ---
 
-# Declare Your Timing, Don't Code It
-
-Most of the time, app code around timing is extremely hard to change. It can be a large impact to the codebase to add `async` to a function declaration, or turn a function into a generator with `function*() {}`. That impact can 'hard-code' in latency or unadaptable behaviors. And relying on framework features like the timing difference between `useEffect` and `useLayoutEffect` can make code vulnerable to framework changes, and make it harder to test.
-
-`polyrhythm` gives you 5 concurrency modes you can plug in trivially as configuration parameters. See it's effect on the "Increment Async" behavior in the [Redux Counter Example](https://codesandbox.io/s/poly-redux-counter-solved-m5cm0).
-
-The listener option `mode` allows you to control the concurrency behavior of a listener declaratively, and is important for making polyrhythm so adaptible to desired timing outcomes. For an autocomplete or session timeout, the `replace` mode is appropriate. For other use cases, `serial`, `parallel` or `ignore` may be appropriate.<br/>`listen('user/activity', () => concat(after(9000, 'Your session is about to expire'), after(1000, 'Your session has expired')), { mode: 'replace' })`
-
-If async effects were sounds, this diagram shows how they might overlap/queue/cancel each other.
-
-<a href="https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png"><img height="400" src="https://s3.amazonaws.com/www.deanius.com/ConcurModes2.png"></a>
-
-> Watch a [Loom Video on these concurrency modes](https://www.loom.com/share/3736003a75bd497eab062c97af0113fc)
-
-This ensures that the exact syntax of your code, and your timing information, are decoupled - the one is not expressed in terms of the other. This let's you write fewer lines, more direct and declarative, and generally more managable code.
-
----
-
-## Examples - What Can You Build With It?
+## List Examples - What Can You Build With It?
 
 - The [Redux Counter Example](https://codesandbox.io/s/poly-redux-counter-solved-m5cm0)
 - The [Redux Todos Example](https://codesandbox.io/s/polyrhythm-redux-todos-ltigo)
@@ -141,34 +210,6 @@ This ensures that the exact syntax of your code, and your timing information, ar
 - The [Chat UI Example](https://codesandbox.io/s/poly-chat-imw2z) with TypingIndicator
 - See [All CodeSandbox Demos](https://codesandbox.io/search?refinementList%5Bnpm_dependencies.dependency%5D%5B0%5D=`polyrhythm`&page=1&configure%5BhitsPerPage%5D=12)
 
-<!--
-# Automate All The Things!
-
-One of the most time-consuming parts of application development is manually running through the steps needed to test an application. With `polyrhythm` though, it's as easy to express the asynchronous scripts that exercise your app as it is to code the app itself! So I tend to build these scripts in parallel with the app, to save time and keystrokes. These scripts also can be moved into true tests.
-
-To aid in creation of test scripts, `polyrhythm` re-exports the RxJS `concat` operator, which sequences Observables. A full script that starts up our Ping Pong, runs it a few seconcs, and shuts it down— takes just a few lines of code:
-
-```js
-const { filter, listen, log, after, concat, trigger } = require('polyrhythm');
-
-filter(true, log);
-const players = listen(/p[io]ng/, returnBall);
-
-concat(
-  after(0, () => log('Game on!')),
-  after(0, () => trigger('ping')),
-  after(4000, () => {
-    players.unsubscribe();
-    console.log('Done!');
-  })
-).toPromise();
-```
-
-The flow of events over time remains plainly visible. We listen and respond to **ping**s and **pong**s in a single listener and capture its Subscription as `players`. Then we create an Observable of the "Game on!" logging, the initial **ping**, and the shutdown. Then we just start it running by calling `toPromise()` upon it.
-
-Also see [storybook-animate](https://github.com/deanius/storybook-animate) for an extension of this idea applied to StorybookJS.
-
--->
 
 # FAQ
 
@@ -191,7 +232,7 @@ Nearly as fast as RxJS. The [Travis CI build output](https://travis-ci.org/githu
 
 ---
 
-# Example: Ping Pong 🏓
+# Tutorial: Ping Pong 🏓
 
 <details>
 <summary>
