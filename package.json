@@ -1,12 +1,13 @@
 {
   "name": "polyrhythm",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "license": "MIT",
   "author": "Dean Radcliffe",
   "repository": "https://github.com/deanius/polyrhythm",
   "main": "dist/index.js",
   "module": "dist/polyrhythm.esm.js",
   "typings": "dist/index.d.ts",
+  "sideEffects": false,
   "files": [
     "dist"
   ],

@@ -3,7 +3,7 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [1.2.8 Better tree-shakability via `sideEffects: false`](#128-better-tree-shakability-via-sideeffects-false)
+- [1.2.9 Better tree-shakability via `sideEffects: false`](#129-better-tree-shakability-via-sideeffects-false)
 - [1.2.7 Better Typescript typings, docs.](#127-better-typescript-typings-docs)
 - [1.2.6 After can defer an Observable.](#126-after-can-defer-an-observable)
 - [1.2.5 Allow listener-returned bare values or generators](#125-allow-listener-returned-bare-values-or-generators)
@@ -23,7 +23,7 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-### 1.2.8 Better tree-shakability via `sideEffects: false`
+### 1.2.9 Better tree-shakability via `sideEffects: false`
 Simple. Viewable in the stats on [Bundlephobia](https://bundlephobia.com/package/polyrhythm)
 
 ### 1.2.7 Better Typescript typings, docs.
