@@ -12,8 +12,6 @@ import { tap } from 'rxjs/operators';
 import { Channel } from '../src/channel';
 import { Event, ConcurrencyMode, Filter } from '../src/types';
 import { randomId, after } from '../src/utils';
-import actionCreatorFactory from 'typescript-fsa';
-const actionCreator = actionCreatorFactory();
 
 const channel = new Channel();
 const trigger = channel.trigger.bind(channel);
@@ -40,10 +38,6 @@ function captureEvents<T>(testFn: (arg: T[]) => void | Promise<any>) {
 
 function it$(name: string, fn: (arg: Event[]) => void | Promise<any>) {
   it(name, captureEvents(fn));
-}
-
-function expectType<T>(t: T): T {
-  return t;
 }
 
 require('clear')();
@@ -880,13 +874,6 @@ describe('Channel Behavior', () => {
             bam: 'bing',
           });
         });
-
-        it('can trigger an FSA Action', () => {
-          const a = actionCreator<Number>('boom');
-          const action = a(1);
-          expectType<string>(action.type);
-          trigger(action);
-        });
       });
 
       describe('2 argument version', () => {
@@ -911,7 +898,7 @@ describe('Channel Behavior', () => {
     });
 
     describe('#filter, #trigger', () => {
-      it('should type it up', () => {
+      it('can mutate the payload', () => {
         filter<FooPayloadEvent>('foo', e => {
           // Typescript helps here
           e.payload.fooId = 'bar';
@@ -919,13 +906,42 @@ describe('Channel Behavior', () => {
 
         // mutates the payload
         const payload = { fooId: 'bazž' };
-        let result = trigger<FooPayload>('foo', payload);
+        let result = trigger('foo', payload);
         expect(payload.fooId).to.eq('bar');
 
         // returns mutated payload (no type safety)
         const e: FooPayloadEvent = { type: 'foo', payload: { fooId: 'moo' } };
         result = trigger<FooPayloadEvent>(e);
         expect(result.payload.fooId).to.eq('bar');
+      });
+      it('can return a new payload to sub out for listeners', () => {
+        const seenFooIds: Array<string> = [];
+        filter<FooPayloadEvent>('foo', e => {
+          return { type: e.type, payload: { fooId: 'bar' } };
+        });
+        listen('foo', e => {
+          seenFooIds.push(e.payload.fooId);
+        });
+
+        const payload = { fooId: 'bazž' };
+        trigger('foo', payload);
+
+        // the filter replaces the event
+        expect(seenFooIds).to.include('bar');
+      });
+
+      it('can return null to hide from listeners', () => {
+        const seenFooIds: Array<string> = [];
+        filter<FooPayloadEvent>('foo', e => {
+          return null;
+        });
+        listen('foo', e => {
+          seenFooIds.push(e.payload.fooId);
+        });
+
+        const payload = { fooId: 'bazž' };
+        trigger('foo', payload);
+        expect(seenFooIds.length).to.equal(0);
       });
     });
 

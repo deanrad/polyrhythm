@@ -40,7 +40,7 @@ export class Channel {
     eventOrType: string | (EventWithAnyFields & T),
     payload?: T
   ): EventWithResult {
-    const event: EventWithResult =
+    let event: EventWithResult =
       typeof eventOrType === 'string'
         ? { type: eventOrType as string }
         : eventOrType;
@@ -48,7 +48,11 @@ export class Channel {
 
     for (const [predicate, filter] of this.filters.entries()) {
       if (predicate(event)) {
-        filter(event);
+        const filterResult = filter(event);
+        if (filterResult === null) return event;
+        if (filterResult && filterResult.type) {
+          event = filterResult as EventWithResult;
+        }
       }
     }
 
