@@ -4,6 +4,8 @@ export { Subscriber, Subscription } from 'rxjs';
 export interface Event {
   type: string;
   payload?: any;
+  error?: boolean;
+  meta?: Object;
 }
 export interface EventWithAnyFields extends Event {
   [others: string]: any;
@@ -39,14 +41,14 @@ export type EffectDescriptor<T> =
  * A Filter runs a synchronous function prior to any listeners
  * being invoked, and can cancel future filters, and all listeners
  * by throwing an exception, which must be caught by the caller of
- * `trigger`.
+ * `trigger`. It may cancel or replace the event by returning `null` or non-null.
  *
  * It does *not*, as its name might suggest, split off a slice of the
  * stream. To do that see `query`.
  * @see query
  */
 export interface Filter<T> {
-  (item: T): void;
+  (item: T): void | null | EventWithAnyFields;
 }
 
 /**
@@ -67,69 +69,20 @@ export interface Listener<T, U> {
  */
 export enum ConcurrencyMode {
   /**
-   * Runs an async process in 'parallel' or 'mergeMap' mode.
-   *
-   * For 'parallel' mode, if triggers 1 and 2 begin overlapping async processes,
-   * marked by start:N and done:N events, the following order will occur:
-   *
-   * ```
-   * start:1
-   * start:2
-   * done:1 // done in either order
-   * done:2
-   * ```
-   * */
+   * Newly returned Observables are subscribed immediately, without regard to resource constraints, or the ordering of their completion. (ala mergeMap) */
   parallel = 'parallel',
   /**
-   * Runs an async process in 'serial' or 'concatMap' mode.
-   *
-   * For 'serial' mode, if triggers 1 and 2 begin overlapping async processes,
-   * marked by start:N and done:N events, the following order will occur:
-   *
-   * ```
-   * start:1
-   * done:1
-   * start:2
-   * done:2
-   * ```
-   * */
+   * Observables are enqueued and always complete in the order they were triggered. (ala concatMap)*/
   serial = 'serial',
   /**
-   * Runs an async process in 'replace' or 'switchMap' mode.
-   *
-   * For 'replace' mode, if triggers 1 and 2 begin overlapping async processes,
-   * marked by start:N and done:N events, the following order will occur:
-   *
-   * ```
-   * start:1
-   * start:2  // process 1 canceled
-   * done:2
-   * ```
-   * */
+   * Any existing Observable is canceled, and a new is begun (ala switchMap) */
   replace = 'replace',
   /**
-   *
-   * Runs an async process in 'ignore' or 'exhaustMap' mode.
-   *
-   * For 'ignore' mode, if triggers 1 and 2 begin overlapping async processes,
-   * marked by start:N and done:N events, the following order will occur:
-   *
-   * ```
-   * start:1
-   * done:1  // process 2 not started
-   * ```
-   * */
+   * Any new Observable is not subscribed if another is running. (ala exhaustMap) */
   ignore = 'ignore',
   /**
-   * Runs an async process in 'toggle' mode.
-   *
-   * For 'toggle' mode, if triggers 1 and 2 begin overlapping async processes,
-   * marked by start:N and done:N events, the following order will occur:
-   *
-   * ```
-   * start:1 // process 1 canceled by trigger 2, unstarted as well
-   * ```
-   * */
+   * Any new Observable is not subscribed if another is running, and
+   * the previous one is canceled. (ala switchMap with empty() aka toggleMap) */
   toggle = 'toggle',
 }
 
