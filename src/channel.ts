@@ -1,6 +1,6 @@
 import { Subject, Observable, Subscription, empty, throwError } from 'rxjs';
 import isMatch from 'lodash.ismatch';
-import { catchError, filter as _filter, map, mergeMap } from 'rxjs/operators';
+import { catchError, filter as _filter, map, mergeMap, tap } from 'rxjs/operators';
 import { takeUntil, first } from 'rxjs/operators';
 import { combineWithConcurrency, after } from './utils';
 import {
@@ -115,22 +115,23 @@ export class Channel {
     if (config.takeUntil) {
       individualPipes.push(takeUntil(this.query(config.takeUntil)));
     }
+
     // @ts-ignore
     const individualEnder: Observable<any> = userTriggers.complete
       ? new Observable(o => {
-          // @ts-ignore
-          this.trigger(userTriggers.complete);
-          o.complete();
-        })
+        // @ts-ignore
+        this.trigger(userTriggers.complete);
+        o.complete();
+      })
       : empty();
 
     const individualStarter = (e: Event) =>
       // @ts-ignore
       userTriggers.start
         ? after(0, () => {
-            // @ts-ignore
-            this.trigger(userTriggers.start, e.payload);
-          })
+          // @ts-ignore
+          this.trigger(userTriggers.start, e.payload);
+        })
         : empty();
 
     const _combined = combineWithConcurrency<T, U>(
@@ -175,11 +176,11 @@ export class Channel {
       map(e => e as T)
     );
 
-    resultObs.toPromise = function() {
+    resultObs.toPromise = function () {
       return resultObs.pipe(first()).toPromise();
     };
     // @ts-ignore
-    resultObs.then = function(resolve, reject) {
+    resultObs.then = function (resolve, reject) {
       return resultObs.toPromise().then(resolve, reject);
     };
     return resultObs;
@@ -258,7 +259,7 @@ function getEventPredicate(
  * }));
  */
 export function captureEvents<T>(testFn: (arg: T[]) => void | Promise<any>) {
-  return function() {
+  return function () {
     const seen = new Array<T>();
     // @ts-ignore
     const sub = query(true).subscribe(event => seen.push(event));

@@ -23,7 +23,7 @@ const spy = channel.spy.bind(channel);
 const reset = channel.reset.bind(channel);
 
 function captureEvents<T>(testFn: (arg: T[]) => void | Promise<any>) {
-  return function() {
+  return function () {
     const seen = new Array<T>();
     // @ts-ignore
     const sub = channel.query(true).subscribe(event => seen.push(event));
@@ -63,7 +63,7 @@ describe('Channel Behavior', () => {
     reset();
     callCount = 0;
   });
-  afterEach(function() {
+  afterEach(function () {
     if (this.subscription) {
       this.unsubscribe = () => this.subscription.unsubscribe();
     }
@@ -121,7 +121,7 @@ describe('Channel Behavior', () => {
     });
 
     describe('inside of a #listen', () => {
-      it('misses its own event, of course', async function() {
+      it('misses its own event, of course', async function () {
         let counter = 0;
         listen('count/start', () => {
           query('count/start').subscribe(() => {
@@ -195,7 +195,7 @@ describe('Channel Behavior', () => {
           listen(
             'known-event',
             () =>
-              function() {
+              function () {
                 callCount++;
                 return delay(10);
               },
@@ -214,7 +214,7 @@ describe('Channel Behavior', () => {
     });
 
     it('returns a subscription', () => {
-      const result = listen(true, () => {});
+      const result = listen(true, () => { });
 
       expect(result).to.be.instanceOf(Subscription);
     });
@@ -262,7 +262,7 @@ describe('Channel Behavior', () => {
   });
 
   describe('#trigger, #query', () => {
-    it('does not find events triggered before the query', function() {
+    it('does not find events triggered before the query', function () {
       let counter = 0;
       trigger('count/start');
       this.subscription = query('count/start').subscribe(() => {
@@ -358,7 +358,7 @@ describe('Channel Behavior', () => {
         listen(
           'known-event',
           () =>
-            function() {
+            function () {
               callCount++;
               return Promise.resolve(1.007);
             },
@@ -429,7 +429,7 @@ describe('Channel Behavior', () => {
           expect(1).to.eql(1);
           listen(
             'seq',
-            function*({ payload: count }) {
+            function* ({ payload: count }) {
               for (let i = 1; i <= count; i++) {
                 yield i;
               }
@@ -570,6 +570,28 @@ describe('Channel Behavior', () => {
         ]);
       })
     );
+
+    it.only(
+      'can trigger `cancel` events via config',
+      captureEvents(async seen => {
+        const sub = listen('cause', () => after(1, () => '⚡️'), {
+          trigger: { cancel: 'canceled' },
+        });
+
+        trigger('cause', 'a');
+        sub.unsubscribe();
+
+        await delay(5);
+        expect(seen).to.eql([
+          { type: 'cause', payload: 'a' },
+          { type: 'canceled' }
+
+          // but can it refer to the event that was canceled?
+          // { type: 'canceled', payload: { type: 'cause', payload: 'a' } }]);
+        ]);
+      })
+    );
+
 
     it(
       'can trigger entire Observable events with trigger:true',
@@ -963,7 +985,7 @@ describe('Channel Behavior', () => {
   describe('Aliases', () => {
     describe('#on', () => {
       it('is an alias for #listen', () => {
-        const result = on(true, () => {});
+        const result = on(true, () => { });
         expect(result).to.be.instanceOf(Subscription);
       });
     });
