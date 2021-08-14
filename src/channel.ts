@@ -1,8 +1,8 @@
-import { Subject, Observable, Subscription, empty, throwError } from 'rxjs';
+import { Subject, Observable, Subscription, empty, throwError, Observer } from 'rxjs';
 import isMatch from 'lodash.ismatch';
 import { catchError, filter as _filter, map, mergeMap, tap } from 'rxjs/operators';
 import { takeUntil, first } from 'rxjs/operators';
-import { combineWithConcurrency, after } from './utils';
+import { combineWithConcurrency, after, serviceObservable } from './utils';
 import {
   Predicate,
   Filter,
@@ -12,6 +12,7 @@ import {
   EventMatcher,
   Listener,
   ListenerConfig,
+  ConcurrencyMode
 } from './types';
 
 function isTestMode() {
@@ -73,6 +74,23 @@ export class Channel {
     });
   }
 
+  public observe<T extends Event, U>(
+    eventMatcher: EventMatcher,
+    responder: Listener<T, U>,
+    observer: Partial<Observer<T>>,
+    mode: ConcurrencyMode = 'parallel',
+  ):Subscription {
+    const _service = serviceObservable(
+      // @ts-ignore
+      this.query(eventMatcher), 
+      responder, mode, observer);
+      return _service.subscribe()
+  }
+
+  /* Allows the channel to respond to events by creating an Observable
+    run in the specified concurrency mode, and triggering new events based
+    on its TriggerConfig. See also observe.
+  */
   public listen<T extends Event, U>(
     eventMatcher: EventMatcher,
     listener: Listener<T, U>,

@@ -9,9 +9,14 @@ import {
   of,
 } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import sinon from 'sinon';
 import { Channel } from '../src/channel';
 import { Event, ConcurrencyMode, Filter } from '../src/types';
 import { randomId, after } from '../src/utils';
+import chai from 'chai'
+import sinonChai from 'sinon-chai'
+chai.should();
+chai.use(sinonChai);
 
 const channel = new Channel();
 const trigger = channel.trigger.bind(channel);
@@ -21,6 +26,7 @@ const listen = channel.listen.bind(channel);
 const on = channel.on.bind(channel);
 const spy = channel.spy.bind(channel);
 const reset = channel.reset.bind(channel);
+const observe = channel.observe.bind(channel);
 
 function captureEvents<T>(testFn: (arg: T[]) => void | Promise<any>) {
   return function () {
@@ -571,7 +577,7 @@ describe('Channel Behavior', () => {
       })
     );
 
-    it.only(
+    it(
       'can trigger `cancel` events via config',
       captureEvents(async seen => {
         const sub = listen('cause', () => after(1, () => '⚡️'), {
@@ -678,6 +684,28 @@ describe('Channel Behavior', () => {
     });
   });
 
+  describe.only('#observe, #trigger', () => {
+    describe('Happy Path', () => {
+      it('invokes next with the returned payload', () => {
+        const nextSpy = sinon.spy();
+        observe('foo', () => after(0, 'bar'), {
+          next: nextSpy,
+        })
+        trigger('foo')
+        expect(nextSpy).to.have.been.calledWith('bar');
+      })
+      it('invokes complete for each invocation', () => {
+        const completeSpy = sinon.spy();
+        observe('foo', () => after(0, 'bar'), {
+          complete: completeSpy
+        })
+        trigger('foo')
+        trigger('foo')
+        expect(completeSpy).to.have.been.calledTwice;
+      })
+    })
+
+  })
   describe('Concurrency Modes: #listen, #trigger, #trigger', () => {
     it$('ignore (mute/exhaustMap)', async seen => {
       listen('tick/start', ({ payload }) => threeTicksTriggered(payload, 3)(), {

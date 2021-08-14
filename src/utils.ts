@@ -8,6 +8,7 @@ import {
   throwError,
   empty,
   concat,
+  Observer,
 } from 'rxjs';
 import {
   map,
@@ -15,8 +16,9 @@ import {
   concatMap,
   exhaustMap,
   switchMap,
+  tap,
 } from 'rxjs/operators';
-import { AwaitableObservable, ConcurrencyMode, Listener, Thunk } from './types';
+import { AwaitableObservable, ConcurrencyMode, Listener, Thunk, TriggerConfig } from './types';
 import { toggleMap } from './toggleMap';
 export { toggleMap } from './toggleMap';
 export { concat } from 'rxjs';
@@ -116,6 +118,24 @@ export function macroflush(): Promise<number> {
     return setTimeout(() => resolve(getTimestamp()), 0);
   });
 }
+/** The derived observable of the entire service
+ */
+export function serviceObservable<T,U>(
+  o: Observable<T>,
+  responder: (e:T)=>Observable<U>,
+  mode: ConcurrencyMode,
+  observer: Partial<Observer<U>>
+) {
+  const combine = operatorForMode(mode);
+  const resultFactory= (e:T) => responder(e).pipe(
+    tap(observer)
+  )
+  const combined = o.pipe(
+    // @ts-ignore
+    combine(resultFactory)
+  );
+  return combined;
+}
 
 /** Creates a derived Observable, running the listener in the given ConcurrencyMode
  * turning sync errors into Observable error notifications
@@ -126,7 +146,7 @@ export function combineWithConcurrency<T, U>(
   mode: ConcurrencyMode,
   individualPipes = [],
   individualEnder = empty(),
-  individualStarter = () => empty()
+  individualStarter = () => empty(),
 ) {
   const combine = operatorForMode(mode);
   const mappedEvents = (e: T): Observable<U> => {
