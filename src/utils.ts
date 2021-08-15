@@ -18,8 +18,9 @@ import {
   switchMap,
   tap,
 } from 'rxjs/operators';
-import { AwaitableObservable, ConcurrencyMode, Listener, Thunk } from './types';
+import { AwaitableObservable, ConcurrencyMode, Listener, ListenerConfig, Thunk, TriggerConfig } from './types';
 import { toggleMap } from './toggleMap';
+import { Channel } from 'channel';
 export { toggleMap } from './toggleMap';
 export { concat } from 'rxjs';
 export { map, tap, scan } from 'rxjs/operators';
@@ -71,7 +72,7 @@ export function after<T>(
   // after is a 'thenable, thus usable with await.
   // ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
   // @ts-ignore
-  resultObs.then = function(resolve, reject) {
+  resultObs.then = function (resolve, reject) {
     return resultObs.toPromise().then(resolve, reject);
   };
 
@@ -120,14 +121,14 @@ export function macroflush(): Promise<number> {
 }
 /** The derived observable of the entire service
  */
-export function serviceObservable<T,U>(
+export function serviceObservable<T, U>(
   o: Observable<T>,
-  responder: (e:T)=>Observable<U>,
+  responder: (e: T) => Observable<U>,
   mode: ConcurrencyMode,
   observer: PartialObserver<U>
 ) {
   const combine = operatorForMode(mode);
-  const resultFactory= (e:T) => responder(e).pipe(
+  const resultFactory = (e: T) => responder(e).pipe(
     tap(observer)
   )
   const combined = o.pipe(
@@ -145,7 +146,6 @@ export function combineWithConcurrency<T, U>(
   listener: Listener<T, U>,
   mode: ConcurrencyMode,
   individualPipes = [],
-  individualEnder = empty(),
   individualStarter = () => empty(),
 ) {
   const combine = operatorForMode(mode);
@@ -158,7 +158,7 @@ export function combineWithConcurrency<T, U>(
         individualStarter(e),
         // @ts-ignore
         toObservable<U>(_results).pipe(...individualPipes),
-        individualEnder
+        // individualEnder
       );
     } catch (ex) {
       return throwError(ex);
@@ -169,6 +169,22 @@ export function combineWithConcurrency<T, U>(
     combine(mappedEvents)
   );
   return combined;
+}
+
+export function getObserver(channel: Channel, userTriggers: TriggerConfig | true) {
+  if (userTriggers === true) {
+    return { next(e: unknown) { channel.trigger(e) } }
+  }
+  if (userTriggers.complete || userTriggers.next || userTriggers.error) {
+    //@ts-ignore
+    const observer: PartialObserver<any> = {}
+    if (userTriggers.next) { observer.next = v => channel.trigger(userTriggers.next, v)}
+    if (userTriggers.complete) { observer.complete = () => {channel.trigger(userTriggers.complete)}}
+    // errors handled differently to restart     
+    return observer
+  } else {
+    return null;
+  }
 }
 
 /** Controls what types can be returned from an `on` handler:

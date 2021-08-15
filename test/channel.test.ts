@@ -451,8 +451,7 @@ describe('Channel Behavior', () => {
         })
       );
     });
-    describe.only('Config options', () => {
-
+    describe('Config options', () => {
       it(
         'can trigger `next` events via config - and errors kill',
         captureEvents(async seen => {
@@ -477,6 +476,7 @@ describe('Channel Behavior', () => {
           expect(seen).to.eql([{ type: 'cause' }, { type: 'cause' }]);
         })
       );
+
       it(
         'can terminate a listener via takeUntil',
         captureEvents(async seen => {
@@ -577,7 +577,8 @@ describe('Channel Behavior', () => {
           ]);
         })
       );
-      ``
+
+      // RxJS 7.3.0 will enable this
       it.skip(
         'can trigger `cancel` events via config',
         captureEvents(async seen => {
@@ -598,7 +599,6 @@ describe('Channel Behavior', () => {
           ]);
         })
       );
-
 
       it(
         'can trigger entire Observable events with trigger:true',
@@ -621,6 +621,7 @@ describe('Channel Behavior', () => {
         })
       );
     });
+
     describe('Error Handling', () => {
       describe('Sync Errors', () => {
         it('does not throw for the triggerer', () => {

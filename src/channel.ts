@@ -2,7 +2,7 @@ import { Subject, Observable, Subscription, empty, Observer } from 'rxjs';
 import isMatch from 'lodash.ismatch';
 import { catchError, filter as _filter, map, tap } from 'rxjs/operators';
 import { takeUntil, first } from 'rxjs/operators';
-import { combineWithConcurrency, after, serviceObservable } from './utils';
+import { combineWithConcurrency, after, serviceObservable, getObserver } from './utils';
 import {
   Predicate,
   Filter,
@@ -99,27 +99,12 @@ export class Channel {
     const userTriggers = config.trigger || {};
     const individualPipes = [];
 
-    const nextNotifier = (e: Event) =>
-      // @ts-ignore
-      userTriggers.next ? this.trigger(userTriggers.next, e) : this.trigger(e);
-    // @ts-ignore
-    if (userTriggers.next || userTriggers === true) {
-      individualPipes.push(
-        tap({
-          next: nextNotifier
-        })
-      )
+    const individualObserver = getObserver(this, userTriggers);
+    if (individualObserver) {
+      individualPipes.push(tap(individualObserver))
     }
-    // @ts-ignore
-    const individualEnder: Observable<any> = userTriggers.complete
-      ? new Observable(o => {
-        // @ts-ignore
-        this.trigger(userTriggers.complete);
-        o.complete();
-      })
-      : empty();
 
-      // @ts-ignore
+    // @ts-ignore
     if (userTriggers.error) {
       individualPipes.push(
         catchError(
@@ -137,6 +122,7 @@ export class Channel {
       individualPipes.push(takeUntil(this.query(config.takeUntil)));
     }
 
+    // TODO In RxJS 7.3.0 the indvidualObserver can handle this 
     const individualStarter = (e: Event) =>
       // @ts-ignore
       userTriggers.start
@@ -152,7 +138,6 @@ export class Channel {
       // @ts-ignore
       config.mode,
       individualPipes,
-      individualEnder,
       individualStarter
     );
 
