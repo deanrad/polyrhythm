@@ -10,7 +10,7 @@ import {
 } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import sinon from 'sinon';
-import { Channel } from '../src/channel';
+import { Channel, MSG_LISTENER_ERROR } from '../src/channel';
 import { Event, ConcurrencyMode, Filter } from '../src/types';
 import { randomId, after } from '../src/utils';
 import chai from 'chai'
@@ -636,6 +636,17 @@ describe('Channel Behavior', () => {
           triggerEvent();
           expect(callCount).to.equal(1);
         });
+
+        it('spits out an error message', () => {
+          const seen: Array<any>= []
+          channel.errors.subscribe(e => seen.push(e) );
+
+          listen(true, thrower);
+          triggerEvent();
+
+          expect(seen).to.have.length(2)
+          expect(seen[1]).to.equal(MSG_LISTENER_ERROR)
+        })
       });
 
       describe('Observable Errors', () => {

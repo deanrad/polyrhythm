@@ -19,7 +19,7 @@ function isTestMode() {
   if (typeof process === 'undefined') return false;
   return process?.env?.NODE_ENV === 'test';
 }
-const MSG_LISTENER_ERROR = `A listener function notified with an error and will be unsubscribed`;
+export const MSG_LISTENER_ERROR = `A listener function notified with an error and will be unsubscribed`;
 
 export class Channel {
   private eventChannel: Subject<Event>;
