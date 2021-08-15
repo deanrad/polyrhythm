@@ -18,9 +18,9 @@ import {
   switchMap,
   tap,
 } from 'rxjs/operators';
-import { AwaitableObservable, ConcurrencyMode, Listener, ListenerConfig, Thunk, TriggerConfig } from './types';
+import { AwaitableObservable, ConcurrencyMode, EventWithAnyFields, Listener, Thunk, TriggerConfig } from './types';
 import { toggleMap } from './toggleMap';
-import { Channel } from 'channel';
+import { Channel } from './channel';
 export { toggleMap } from './toggleMap';
 export { concat } from 'rxjs';
 export { map, tap, scan } from 'rxjs/operators';
@@ -173,13 +173,14 @@ export function combineWithConcurrency<T, U>(
 
 export function getObserver(channel: Channel, userTriggers: TriggerConfig | true) {
   if (userTriggers === true) {
-    return { next(e: unknown) { channel.trigger(e) } }
+    return { next(e: string | EventWithAnyFields) { channel.trigger(e) } }
   }
   if (userTriggers.complete || userTriggers.next || userTriggers.error) {
     //@ts-ignore
     const observer: PartialObserver<any> = {}
-    if (userTriggers.next) { observer.next = v => channel.trigger(userTriggers.next, v)}
-    if (userTriggers.complete) { observer.complete = () => {channel.trigger(userTriggers.complete)}}
+    if (userTriggers.next) { observer.next = v => channel.trigger(userTriggers.next, v) }
+    //@ts-ignore
+    if (userTriggers.complete) { observer.complete = () => { channel.trigger(userTriggers.complete) } }
     // errors handled differently to restart     
     return observer
   } else {
