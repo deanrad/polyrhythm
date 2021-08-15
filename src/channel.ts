@@ -1,6 +1,6 @@
 import { Subject, Observable, Subscription, empty, throwError, Observer } from 'rxjs';
 import isMatch from 'lodash.ismatch';
-import { catchError, filter as _filter, map, mergeMap, tap } from 'rxjs/operators';
+import { catchError, filter as _filter, map, mergeMap } from 'rxjs/operators';
 import { takeUntil, first } from 'rxjs/operators';
 import { combineWithConcurrency, after, serviceObservable } from './utils';
 import {
@@ -78,7 +78,7 @@ export class Channel {
     eventMatcher: EventMatcher,
     responder: Listener<T, U>,
     observer: Partial<Observer<T>>,
-    mode: ConcurrencyMode = 'parallel',
+    mode: ConcurrencyMode = ConcurrencyMode.parallel,
   ):Subscription {
     const _service = serviceObservable(
       // @ts-ignore

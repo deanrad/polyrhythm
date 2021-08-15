@@ -8,7 +8,7 @@ import {
   throwError,
   empty,
   concat,
-  Observer,
+  PartialObserver,
 } from 'rxjs';
 import {
   map,
@@ -18,7 +18,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs/operators';
-import { AwaitableObservable, ConcurrencyMode, Listener, Thunk, TriggerConfig } from './types';
+import { AwaitableObservable, ConcurrencyMode, Listener, Thunk } from './types';
 import { toggleMap } from './toggleMap';
 export { toggleMap } from './toggleMap';
 export { concat } from 'rxjs';
@@ -124,7 +124,7 @@ export function serviceObservable<T,U>(
   o: Observable<T>,
   responder: (e:T)=>Observable<U>,
   mode: ConcurrencyMode,
-  observer: Partial<Observer<U>>
+  observer: PartialObserver<U>
 ) {
   const combine = operatorForMode(mode);
   const resultFactory= (e:T) => responder(e).pipe(
