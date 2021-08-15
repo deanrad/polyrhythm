@@ -1,6 +1,6 @@
-import { Subject, Observable, Subscription, empty, throwError, Observer } from 'rxjs';
+import { Subject, Observable, Subscription, empty, Observer } from 'rxjs';
 import isMatch from 'lodash.ismatch';
-import { catchError, filter as _filter, map, mergeMap } from 'rxjs/operators';
+import { catchError, filter as _filter, map, tap } from 'rxjs/operators';
 import { takeUntil, first } from 'rxjs/operators';
 import { combineWithConcurrency, after, serviceObservable } from './utils';
 import {
@@ -102,21 +102,24 @@ export class Channel {
     const nextNotifier = (e: Event) =>
       // @ts-ignore
       userTriggers.next ? this.trigger(userTriggers.next, e) : this.trigger(e);
-
     // @ts-ignore
     if (userTriggers.next || userTriggers === true) {
       individualPipes.push(
-        mergeMap((e: Event) => {
-          try {
-            nextNotifier(e);
-            return empty();
-          } catch (ex) {
-            return throwError(new Error(MSG_LISTENER_ERROR));
-          }
+        tap({
+          next: nextNotifier
         })
-      );
+      )
     }
     // @ts-ignore
+    const individualEnder: Observable<any> = userTriggers.complete
+      ? new Observable(o => {
+        // @ts-ignore
+        this.trigger(userTriggers.complete);
+        o.complete();
+      })
+      : empty();
+
+      // @ts-ignore
     if (userTriggers.error) {
       individualPipes.push(
         catchError(
@@ -133,15 +136,6 @@ export class Channel {
     if (config.takeUntil) {
       individualPipes.push(takeUntil(this.query(config.takeUntil)));
     }
-
-    // @ts-ignore
-    const individualEnder: Observable<any> = userTriggers.complete
-      ? new Observable(o => {
-        // @ts-ignore
-        this.trigger(userTriggers.complete);
-        o.complete();
-      })
-      : empty();
 
     const individualStarter = (e: Event) =>
       // @ts-ignore
