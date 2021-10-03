@@ -9,19 +9,19 @@
 - [1.2.7 Better Typescript typings, docs.](#127-better-typescript-typings-docs)
 - [1.2.6 After can defer an Observable.](#126-after-can-defer-an-observable)
 - [1.2.5 Allow listener-returned bare values or generators](#125-allow-listener-returned-bare-values-or-generators)
-  - [1.2.4 Can declaratively fire a 'start' event upon Observable subscription](#124-can-declaratively-fire-a-start-event-upon-observable-subscription)
-  - [1.2.3 Important bug fix](#123-important-bug-fix)
-  - [1.2 Smaller Bundle, More Robust](#12-smaller-bundle-more-robust)
-  - [1.1.6 takeUntil](#116-takeuntil)
-  - [1.1.3 await query(), and succint tests](#113-await-query-and-succint-tests)
-  - [1.1.2 Support generators as listeners](#112-support-generators-as-listeners)
-  - [1.1.1 Add optional TypeScript typings](#111-add-optional-typescript-typings)
-  - [1.1.0 Remove React dependencies](#110-remove-react-dependencies)
-  - [1.0.12 Trigger whole event objects](#1012-trigger-whole-event-objects)
-  - [1.0.11 `query.toPromise()` returns the next matching event](#1011-querytopromise-returns-the-next-matching-event)
-  - [1.0.8 `microq` and `macroq` functions](#108-microq-and-macroq-functions)
-  - [1.0.7 TypeScript typings corrected for `after`](#107-typescript-typings-corrected-for-after)
-  - [1.0.6 Handy RxJS exports](#106-handy-rxjs-exports)
+- [1.2.4 Can declaratively fire a 'start' event upon Observable subscription](#124-can-declaratively-fire-a-start-event-upon-observable-subscription)
+- [1.2.3 Important bug fix](#123-important-bug-fix)
+- [1.2 Smaller Bundle, More Robust](#12-smaller-bundle-more-robust)
+- [1.1.6 takeUntil](#116-takeuntil)
+- [1.1.3 await query(), and succint tests](#113-await-query-and-succint-tests)
+- [1.1.2 Support generators as listeners](#112-support-generators-as-listeners)
+- [1.1.1 Add optional TypeScript typings](#111-add-optional-typescript-typings)
+- [1.1.0 Remove React dependencies](#110-remove-react-dependencies)
+- [1.0.12 Trigger whole event objects](#1012-trigger-whole-event-objects)
+- [1.0.11 `query.toPromise()` returns the next matching event](#1011-querytopromise-returns-the-next-matching-event)
+- [1.0.8 `microq` and `macroq` functions](#108-microq-and-macroq-functions)
+- [1.0.7 TypeScript typings corrected for `after`](#107-typescript-typings-corrected-for-after)
+- [1.0.6 Handy RxJS exports](#106-handy-rxjs-exports)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -52,7 +52,7 @@ usually (which is why you can call `toPromise` on it, or `await` it)
 Listeners ought to return Observables, but when they return an iterable, which could be a generator,
 how should the values be provided? They generally become `next` notifications individually, to preserve cases where, like Websockets, many notifications come in incrementally. However, a String is iterable, and it seemed a bug to `next` each letter of the string.
 
-#### 1.2.4 Can declaratively fire a 'start' event upon Observable subscription
+### 1.2.4 Can declaratively fire a 'start' event upon Observable subscription
 
 For feature-parity with conventions like for Redux Query, and those
 that emit an event at the beginning of an async operation, a TriggerConfig may
@@ -60,9 +60,9 @@ now admit a `start` event, which will be triggered.
 
 Also fixed an issue where trigger: true (the source of so many Typescript errors) wasn't actually triggering.
 
-#### 1.2.3 Important bug fix
+### 1.2.3 Important bug fix
 
-#### 1.2 Smaller Bundle, More Robust
+### 1.2 Smaller Bundle, More Robust
 
 - Bundle size 2.23Kb (Down from 2.37Kb)
 - `after` is type-safe!
@@ -75,27 +75,27 @@ Possibly breaking:
 
 Includes the `combineWithConcurrency` export to allow ConcurrencyMode/string declarative style Observable-combination (without using the less-mnemonic operators).
 
-#### 1.1.6 takeUntil
+### 1.1.6 takeUntil
 
 `channel.listen({ takeUntil: pattern })`: Now adds a takeUntil(query(pattern)) to each Observable returned from the listener to allow for declarative cancelation.
 
-#### 1.1.3 await query(), and succint tests
+### 1.1.3 await query(), and succint tests
 
 Similar to `after`, there is a `then` method exposed on the return value from `query()`, so it is await-able without explicitly calling `toPromise` on it. Also, found a really nice testing pattern that will work as well in a `this`-less test framework like Jest, as it does in mocha, and also has fewer moving parts overall.
 
-#### 1.1.2 Support generators as listeners
+### 1.1.2 Support generators as listeners
 
 For Redux Saga and generator fans, a listener can be a generator function— Observable-wrapping of generators is easily done.
 
-#### 1.1.1 Add optional TypeScript typings
+### 1.1.1 Add optional TypeScript typings
 
 The primary functions you use to `trigger`, `filter`, `listen`, and `query` the event bus, as well as the `after` utility, all at least somewhat support adding Typescript for addtional editor awareness.
 
-#### 1.1.0 Remove React dependencies
+### 1.1.0 Remove React dependencies
 
 The convenience hooks have been moved to the [polyrhythm-react](https://github.com/deanius/polyrhythm-react), so as not to import React in Node environments, or express a framework preference.
 
-#### 1.0.12 Trigger whole event objects
+### 1.0.12 Trigger whole event objects
 
 Inspired by JQuery, the polyrhythm API `trigger` took the name of the event and the payload separately.
 
@@ -120,7 +120,7 @@ Remember to keep the `type` field populated with a string, all of polyrhtyhm key
 
 ---
 
-#### 1.0.11 `query.toPromise()` returns the next matching event
+### 1.0.11 `query.toPromise()` returns the next matching event
 
 Commit: ([cb5a859](https://github.com/deanius/polyrhythm/commit/cb5a859))
 
@@ -180,7 +180,7 @@ On a humorous note, it was funny because I'd published the package without build
 
 ---
 
-#### 1.0.8 `microq` and `macroq` functions
+### 1.0.8 `microq` and `macroq` functions
 
 Commit: ([bc583de](https://github.com/deanius/polyrhythm/commit/bc583de))
 
@@ -217,7 +217,7 @@ And thus the answer is `fn4`, `fn1`, `fn2`, and `fn3`, or **D**,**A**,**B**,**C*
 
 ---
 
-#### 1.0.7 TypeScript typings corrected for `after`
+### 1.0.7 TypeScript typings corrected for `after`
 
 Commit: ([defeeeb](https://github.com/deanius/polyrhythm/commit/defeeeb))
 
@@ -268,7 +268,7 @@ You can get imports `after` and `concat` directly from polyrhythm, as of
 
 ---
 
-#### 1.0.6 Handy RxJS exports
+### 1.0.6 Handy RxJS exports
 
 Commit: ([ee38e6a](https://github.com/deanius/polyrhythm/commit/ee38e6a))
 
