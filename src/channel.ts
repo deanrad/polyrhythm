@@ -1,8 +1,8 @@
-import { Subject, Observable, Subscription, empty, throwError } from 'rxjs';
+import { Subject, Observable, Subscription, empty } from 'rxjs';
 import isMatch from 'lodash.ismatch';
-import { catchError, filter as _filter, map, mergeMap } from 'rxjs/operators';
+import { catchError, filter as _filter, map, tap } from 'rxjs/operators';
 import { takeUntil, first } from 'rxjs/operators';
-import { combineWithConcurrency, after } from './utils';
+import { combineWithConcurrency, after, getObserver } from './utils';
 import {
   Predicate,
   Filter,
@@ -11,14 +11,14 @@ import {
   EventWithResult,
   EventMatcher,
   Listener,
-  ListenerConfig,
+  ListenerConfig
 } from './types';
 
 function isTestMode() {
   if (typeof process === 'undefined') return false;
   return process?.env?.NODE_ENV === 'test';
 }
-const MSG_LISTENER_ERROR = `A listener function notified with an error and will be unsubscribed`;
+export const MSG_LISTENER_ERROR = `A listener function notified with an error and will be unsubscribed`;
 
 export class Channel {
   private eventChannel: Subject<Event>;
@@ -73,6 +73,10 @@ export class Channel {
     });
   }
 
+  /* Allows the channel to respond to events by creating an Observable
+    run in the specified concurrency mode, and triggering new events based
+    on its TriggerConfig. See also observe.
+  */
   public listen<T extends Event, U>(
     eventMatcher: EventMatcher,
     listener: Listener<T, U>,
@@ -81,23 +85,11 @@ export class Channel {
     const userTriggers = config.trigger || {};
     const individualPipes = [];
 
-    const nextNotifier = (e: Event) =>
-      // @ts-ignore
-      userTriggers.next ? this.trigger(userTriggers.next, e) : this.trigger(e);
-
-    // @ts-ignore
-    if (userTriggers.next || userTriggers === true) {
-      individualPipes.push(
-        mergeMap((e: Event) => {
-          try {
-            nextNotifier(e);
-            return empty();
-          } catch (ex) {
-            return throwError(new Error(MSG_LISTENER_ERROR));
-          }
-        })
-      );
+    const individualObserver = getObserver(this, userTriggers);
+    if (individualObserver) {
+      individualPipes.push(tap(individualObserver))
     }
+
     // @ts-ignore
     if (userTriggers.error) {
       individualPipes.push(
@@ -115,22 +107,15 @@ export class Channel {
     if (config.takeUntil) {
       individualPipes.push(takeUntil(this.query(config.takeUntil)));
     }
-    // @ts-ignore
-    const individualEnder: Observable<any> = userTriggers.complete
-      ? new Observable(o => {
-          // @ts-ignore
-          this.trigger(userTriggers.complete);
-          o.complete();
-        })
-      : empty();
 
+    // TODO In RxJS 7.3.0 the indvidualObserver can handle this 
     const individualStarter = (e: Event) =>
       // @ts-ignore
       userTriggers.start
         ? after(0, () => {
-            // @ts-ignore
-            this.trigger(userTriggers.start, e.payload);
-          })
+          // @ts-ignore
+          this.trigger(userTriggers.start, e.payload);
+        })
         : empty();
 
     const _combined = combineWithConcurrency<T, U>(
@@ -139,7 +124,6 @@ export class Channel {
       // @ts-ignore
       config.mode,
       individualPipes,
-      individualEnder,
       individualStarter
     );
 
@@ -175,11 +159,11 @@ export class Channel {
       map(e => e as T)
     );
 
-    resultObs.toPromise = function() {
+    resultObs.toPromise = function () {
       return resultObs.pipe(first()).toPromise();
     };
     // @ts-ignore
-    resultObs.then = function(resolve, reject) {
+    resultObs.then = function (resolve, reject) {
       return resultObs.toPromise().then(resolve, reject);
     };
     return resultObs;
@@ -258,7 +242,7 @@ function getEventPredicate(
  * }));
  */
 export function captureEvents<T>(testFn: (arg: T[]) => void | Promise<any>) {
-  return function() {
+  return function () {
     const seen = new Array<T>();
     // @ts-ignore
     const sub = query(true).subscribe(event => seen.push(event));

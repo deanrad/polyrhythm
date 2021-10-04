@@ -3,7 +3,7 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
+- [1.3.1 RxJS 7.3.0 and cancelation handlers](#131-rxjs-730-and-cancelation-handlers)
 - [1.3.0 Filters can remove or mutate events](#130-filters-can-remove-or-mutate-events)
 - [1.2.9 Better tree-shakability via `sideEffects: false`](#129-better-tree-shakability-via-sideeffects-false)
 - [1.2.7 Better Typescript typings, docs.](#127-better-typescript-typings-docs)
@@ -24,6 +24,8 @@
 - [1.0.6 Handy RxJS exports](#106-handy-rxjs-exports)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+### 1.3.1 RxJS 7.3.0 and cancelation handlers
 
 ### 1.3.0 Filters can remove or mutate events
 Solves the common use cases of filters which remove events from downstream listeners', or which replace one event with another. If a Filter function

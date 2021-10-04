@@ -1,4 +1,4 @@
-import { Observable, Subscriber } from 'rxjs';
+import { Observable, Subscriber, Observer } from 'rxjs';
 export { Subscriber, Subscription } from 'rxjs';
 
 export interface Event {
@@ -91,7 +91,10 @@ export interface TriggerConfig {
   complete?: string;
   error?: string;
   start?: string;
+  cancel?: string;
 }
+
+export interface ListenerObserver<T> extends Partial<Observer<T>>{}
 
 export interface ListenerConfig {
   /** The concurrency mode to use. Governs what happens when another handling from this handler is already in progress. */
@@ -104,6 +107,7 @@ export interface ListenerConfig {
     | 'toggle';
   /** A declarative way to map the Observable returned from the listener onto new triggered events */
   trigger?: TriggerConfig | true;
+  /** The RxJS way to map the Observable to new behavior */
   takeUntil?: EventMatcher;
 }
 

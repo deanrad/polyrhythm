@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "lodash.ismatch": "^4.4.0",
-    "rxjs": "^6.5.5"
+    "rxjs": "^6.6.7"
   },
   "devDependencies": {
     "@reduxjs/toolkit": "^1.5.1",
@@ -36,6 +36,7 @@
     "@types/mocha": "^7.0.2",
     "@types/react": "^16.9.19",
     "@types/sinon": "^9.0.0",
+    "@types/sinon-chai": "^3.2.5",
     "chai": "^4.2.0",
     "clear": "^0.1.0",
     "esm": "^3.2.25",
@@ -45,9 +46,10 @@
     "rxjs-for-await": "^0.0.2",
     "rxjs-marbles": "^6.0.1",
     "sinon": "^9.2.3",
+    "sinon-chai": "^3.7.0",
     "size-limit": "^4.4.5",
     "ts-mocha": "^7.0.0",
-    "tsdx": "^0.11.0",
+    "tsdx": "^0.14.0",
     "tslib": "^2.1.0",
     "typedoc": "^0.17.4",
     "typescript": "^3.8.3",
